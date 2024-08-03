@@ -1,0 +1,32 @@
+cmake_minimum_required(VERSION 3.28)
+project(pkmn-c)
+
+option(BUILD_TESTS "Build tests" OFF)
+
+set(CMAKE_C_STANDARD 99)
+set(CMAKE_C_EXTENSIONS off)
+set(
+    SOURCE_FILES
+    src/pkmn_type.h
+)
+
+if (BUILD_TESTS)
+    set(CMAKE_CXX_STANDARD 11)
+
+    include(FetchContent)
+    FetchContent_Declare(
+        Catch2
+        GIT_REPOSITORY https://github.com/catchorg/Catch2
+        GIT_TAG 216713a4066b79d9803d374f261ccb30c0fb451f # v1.15.2
+    )
+    FetchContent_MakeAvailable(Catch2)
+
+    add_executable(tests ${SOURCE_FILES} tests/test_main.cpp)
+    target_link_libraries(tests PRIVATE Catch2::Catch2)
+    target_include_directories(tests PRIVATE Catch2::Catch2)
+
+    enable_testing()
+    add_test(NAME Tests COMMAND tests)
+endif()
+
+add_executable(${PROJECT_NAME} src/main.c ${SOURCE_FILES})

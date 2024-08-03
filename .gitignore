@@ -1,0 +1,16 @@
+.cache/
+.vs/
+
+bin/
+bin_vs/
+build/
+
+*.o
+*.obj
+*.ilk
+*.log
+*.db
+*.pdb
+
+*.sln
+*.vcxproj

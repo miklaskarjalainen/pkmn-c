@@ -1,0 +1,9 @@
+--language=c
+-std=c99
+-Wall
+-Wextra
+-Werror
+-Wmissing-prototypes
+-Wstrict-prototypes
+-Wpedantic
+-Iinclude

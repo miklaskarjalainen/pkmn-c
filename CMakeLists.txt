@@ -1,14 +1,25 @@
 cmake_minimum_required(VERSION 3.28)
 project(pkmn-c)
 
-option(BUILD_TESTS "Build tests" OFF)
+option(BUILD_TESTS "Build tests" on)
 
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_EXTENSIONS off)
 set(
     SOURCE_FILES
-    src/pkmn_type.h
+    include/pkmn_battler.h src/pkmn_battler.c
+    include/pkmn_config.h
+    include/pkmn_move.h
+    include/pkmn_rand.h src/pkmn_rand.c
+    include/pkmn_species.h
+    include/pkmn_stats.h src/pkmn_stats.c
+    include/pkmn_type.h
 )
+set(
+    INCLUDE_DIRS
+    include/
+)
+
 
 if (BUILD_TESTS)
     set(CMAKE_CXX_STANDARD 11)
@@ -21,12 +32,13 @@ if (BUILD_TESTS)
     )
     FetchContent_MakeAvailable(Catch2)
 
-    add_executable(tests ${SOURCE_FILES} tests/test_main.cpp)
+    add_executable(tests ${SOURCE_FILES} tests/test_main.cpp tests/test_pkmn_battler.cpp)
     target_link_libraries(tests PRIVATE Catch2::Catch2)
-    target_include_directories(tests PRIVATE Catch2::Catch2)
+    target_include_directories(tests PRIVATE ${INCLUDE_DIRS} Catch2::Catch2)
 
     enable_testing()
     add_test(NAME Tests COMMAND tests)
 endif()
 
 add_executable(${PROJECT_NAME} src/main.c ${SOURCE_FILES})
+target_include_directories(${PROJECT_NAME} PRIVATE ${INCLUDE_DIRS})

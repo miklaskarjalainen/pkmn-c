@@ -4,6 +4,7 @@
 bin/
 bin_vs/
 build/
+build_vs/
 
 *.o
 *.obj
@@ -11,6 +12,7 @@ build/
 *.log
 *.db
 *.pdb
+*.pyc
 
 *.sln
 *.vcxproj

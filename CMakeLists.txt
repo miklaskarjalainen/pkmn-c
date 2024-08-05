@@ -9,7 +9,7 @@ set(
     SOURCE_FILES
     include/pkmn_battler.h src/pkmn_battler.c
     include/pkmn_config.h
-    include/pkmn_move.h
+    include/pkmn_move.h src/pkmn_move.c
     include/pkmn_rand.h src/pkmn_rand.c
     include/pkmn_species.h
     include/pkmn_stats.h src/pkmn_stats.c

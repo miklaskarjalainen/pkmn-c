@@ -2,9 +2,12 @@
 #define PKMN_MOVE_H
 
 #include <stdint.h>
+#include <stdbool.h>
 
 #include "pkmn_config.h"
 #include "pkmn_type.h"
+
+struct pkmn_battler_t;
 
 typedef enum pkmn_move_category_t {
 	CATEGORY_SPECIAL,
@@ -21,31 +24,24 @@ typedef struct pkmn_move_semantics_t {
 	uint8_t base_pp;
 } pkmn_move_semantics_t;
 
-static const pkmn_move_semantics_t PKMN_MOVES[] = {
-	[0] = {
-		.name = "Tackle",
-		.category = CATEGORY_PHYSICAL,
-		.type = TYPE_NORMAL,
-		.power = 40,
-		.accuracy = 95,
-		.base_pp = 25,
-	},
-	[1] = {
-		.name = "Ember",
-		.category = CATEGORY_SPECIAL,
-		.type = TYPE_FIRE,
-		.power = 40,
-		.accuracy = 100,
-		.base_pp = 25,
-	}
-};
-
-#define PKMN_MOVES_LENGTH PKMN_ARRAY_SIZE(PKMN_MOVES)
-
 typedef struct pkmn_move_t {
 	const pkmn_move_semantics_t* move;
 	uint8_t pp_left;
 	uint8_t pp_ups;
 } pkmn_move_t;
+
+typedef struct pkmn_damage_t {
+	uint16_t damage_done;
+	bool is_critical;
+	bool is_stab;
+	bool is_super_effective;
+} pkmn_damage_t;
+
+
+pkmn_move_t pkmn_move_from_semantic(const pkmn_move_semantics_t* semantic);
+// https://bulbapedia.bulbagarden.net/wiki/Damage
+// GEN III
+pkmn_damage_t pkmn_calculate_damage(const struct pkmn_battler_t* attacker, const struct pkmn_battler_t* defender, const pkmn_move_semantics_t* move);
+
 
 #endif

@@ -37,49 +37,38 @@ void print_battler(const pkmn_battler_t* battler) {
 	print_stats(&battler->iv);
 	printf("\tevs: ");
 	print_stats(&battler->ev);
+	printf(
+		"\tmoves: ['%s', '%s', '%s', '%s']\n",
+		battler->moves[0].move->name,
+		battler->moves[1].move->name,
+		battler->moves[2].move->name,
+		battler->moves[3].move->name
+	);
 	print_species(battler->species);
 	printf("}\n");
-}
-
-// https://bulbapedia.bulbagarden.net/wiki/Damage
-// GEN III
-uint16_t pkmn_calculate_damage(
-	const pkmn_battler_t* attacker,
-	const pkmn_battler_t* defender,
-	const pkmn_move_semantics_t* move
-) {
-    const int IsPhysical = move->category == CATEGORY_PHYSICAL;
-    const uint16_t AtkStat = 
-        IsPhysical ? pkmn_calculate_stats_battler(attacker).atk : pkmn_calculate_stats_battler(attacker).spatk;
-    const uint16_t DefStat = 
-        IsPhysical ? pkmn_calculate_stats_battler(defender).def : pkmn_calculate_stats_battler(defender).spdef;
-
-    const float BaseDamage = ((((2.0f*attacker->level)/5.0f)+2.0f) * move->power * AtkStat/DefStat) / 50.0f;
-
-    // TODO: Rest of the mechanics e.g weather, stab, burns, high crit ratio etc
-    const float CriticalHit = pkmn_randf() <= 0.0625 ? 2.0f : 1.0f;
-
-    return (uint16_t)(BaseDamage * CriticalHit);
 }
 
 #include "pkmn_move_data.h"
 #include "pkmn_pokemon_data.h"
 
 int main(void) {
-    UNUSED(PKMN_MOVES);
 	pkmn_init_seed(time(NULL));
 
     const pkmn_move_semantics_t* m = BULLETSEED; 
     printf("%u\n", m->accuracy);
 
-
     pkmn_battler_t zekrom = pkmn_generate_battler(ZEKROM, 50);
     pkmn_battler_t charmander = pkmn_generate_battler(CHARMANDER, 50); 
 
-    printf("FINAL DAMAGE: %u\n", pkmn_calculate_damage(&zekrom, &charmander, THUNDER));
+	pkmn_damage_t dmg = pkmn_calculate_damage(&zekrom, &charmander, THUNDER);
+
+    printf("dmg: { dmg = %u, crit = %i, stab = %i)\n", dmg.damage_done, dmg.is_critical, dmg.is_stab);
+	print_battler(&zekrom);
+	print_battler(&charmander);
+	
 
     printf(
-        "IS SHINY %s\n", pkmn_generated_is_shiny(0xE72DE53F, 5667, 5175) ? "true" : "false"
+        "IS SHINY %s\n", pkmn_calculate_shininess(0xE72DE53F, 5667, 5175) ? "true" : "false"
     );
 
     return 0;

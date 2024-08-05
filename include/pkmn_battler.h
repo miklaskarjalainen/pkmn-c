@@ -6,6 +6,8 @@
 #include "pkmn_stats.h"
 #include "pkmn_move.h"
 
+#define PKMN_BATTLER_MOVE_COUNT 4
+
 struct pkmn_species_t;
 
 typedef enum pkmn_status_t {
@@ -29,12 +31,12 @@ typedef struct pkmn_battler_t {
     
     uint8_t level;
     uint8_t current_hp;
-	pkmn_move_t moves[4];
+	pkmn_move_t moves[PKMN_BATTLER_MOVE_COUNT];
     pkmn_status_t status;
 } pkmn_battler_t;
 
 // https://bulbapedia.bulbagarden.net/wiki/Shiny_Pokémon
-bool pkmn_generated_is_shiny(uint32_t PID, uint16_t TID, uint16_t SID);
+bool pkmn_calculate_shininess(uint32_t PID, uint16_t TID, uint16_t SID);
 pkmn_battler_t pkmn_generate_battler(const struct pkmn_species_t* species, uint8_t level);
 
 #endif

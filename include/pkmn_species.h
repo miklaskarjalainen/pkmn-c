@@ -20,7 +20,4 @@ typedef struct pkmn_species_t {
     } level_up_moves[MAX_LEVEL_UP_MOVES];
 } pkmn_species_t;
 
-
-
-
 #endif

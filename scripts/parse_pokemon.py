@@ -1,6 +1,6 @@
 from pbsparser import PBSParser
 
-PATH_TO_FILE = "C:/Users/giffi/Downloads/Pokemon Essentials v21.1 2023-07-30/PBS/pokemon.txt"
+PATH_TO_FILE = "<path to pokemon essentials' pokemon.txt>"
 
 # parses the dictionary passed in and spits it out as a C struct
 class PBSPokemon:

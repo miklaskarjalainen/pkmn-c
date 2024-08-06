@@ -14,6 +14,9 @@ set(
     include/pkmn_species.h
     include/pkmn_stats.h src/pkmn_stats.c
     include/pkmn_type.h
+
+    include/data/pkmn_move_data.h
+    include/data/pkmn_pokemon_data.h
 )
 set(
     INCLUDE_DIRS

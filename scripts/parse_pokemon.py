@@ -72,6 +72,6 @@ _whole_file = f"""
 """
 
 # Write to file
-file = open("../include/pkmn_pokemon_data.h", "w")
+file = open("../include/data/pkmn_pokemon_data.h", "w")
 file.write(_whole_file)
 file.close()

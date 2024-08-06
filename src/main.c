@@ -9,6 +9,10 @@
 #include "pkmn_battler.h"
 #include "pkmn_rand.h"
 
+#include "data/pkmn_move_data.h"
+#include "data/pkmn_pokemon_data.h"
+
+
 void print_stats(const pkmn_stats_t* stats) {
 	printf("[%u, %u, %u, %u, %u, %u]\n", stats->hp, stats->atk, stats->def, stats->spatk, stats->spdef, stats->speed);
 }

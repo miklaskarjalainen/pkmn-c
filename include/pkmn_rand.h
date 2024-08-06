@@ -8,6 +8,7 @@ uint8_t pkmn_rand_u8(void);
 uint16_t pkmn_rand_u16(void);
 uint32_t pkmn_rand_u32(void);
 int32_t pkmn_rand_i32(void);
+// min(inclusive), max(inclusive)
 int32_t pkmn_rand_range(int32_t min, int32_t max);
 float pkmn_randf(void);
 

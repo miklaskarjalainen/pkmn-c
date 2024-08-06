@@ -1,7 +1,11 @@
 #include "pkmn_rand.h"
 
 // RANDOM BASED ON https://tasvideos.org/GameResources/GBA/PokemonGen3/RNG
-static uint32_t sRandomSeed = 0x0; 
+
+
+// Set the 0x5a0, because that's the initial seed ruby and sapphire games. 
+// This is just kinda funny thing a custom seed should be set via 'pkmn_init_seed'
+static uint32_t sRandomSeed = 0x5a0;
 
 void pkmn_init_seed(uint32_t seed) {
     sRandomSeed = seed;

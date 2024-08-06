@@ -26,6 +26,10 @@ uint32_t pkmn_rand_u32(void) {
     return sRandomSeed;
 }
 
+uint32_t pkmn_rand_get_seed(void) {
+    return sRandomSeed;
+}
+
 int32_t pkmn_rand_i32(void) {
     uint32_t res = pkmn_rand_u32();
     return *(int32_t*)&res;

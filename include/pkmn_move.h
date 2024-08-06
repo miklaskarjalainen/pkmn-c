@@ -30,18 +30,6 @@ typedef struct pkmn_move_t {
 	uint8_t pp_ups;
 } pkmn_move_t;
 
-typedef struct pkmn_damage_t {
-	uint16_t damage_done;
-	bool is_critical;
-	bool is_stab;
-	bool is_super_effective;
-} pkmn_damage_t;
-
-
 pkmn_move_t pkmn_move_from_semantic(const pkmn_move_semantics_t* semantic);
-// https://bulbapedia.bulbagarden.net/wiki/Damage
-// GEN III
-pkmn_damage_t pkmn_calculate_damage(const struct pkmn_battler_t* attacker, const struct pkmn_battler_t* defender, const pkmn_move_semantics_t* move);
-
 
 #endif

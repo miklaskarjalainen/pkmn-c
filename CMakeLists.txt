@@ -7,6 +7,7 @@ set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_EXTENSIONS off)
 set(
     SOURCE_FILES
+    include/pkmn_battle.h src/pkmn_battle.c
     include/pkmn_battler.h src/pkmn_battler.c
     include/pkmn_config.h
     include/pkmn_move.h src/pkmn_move.c

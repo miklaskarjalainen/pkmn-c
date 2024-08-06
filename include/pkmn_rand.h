@@ -10,6 +10,7 @@ uint32_t pkmn_rand_u32(void);
 int32_t pkmn_rand_i32(void);
 // min(inclusive), max(inclusive)
 int32_t pkmn_rand_range(int32_t min, int32_t max);
+uint32_t pkmn_rand_get_seed(void);
 float pkmn_randf(void);
 
 #endif

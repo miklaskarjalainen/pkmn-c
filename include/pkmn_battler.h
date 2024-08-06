@@ -7,6 +7,7 @@
 #include "pkmn_move.h"
 
 #define PKMN_BATTLER_MOVE_COUNT 4
+#define PKMN_MAX_PARTY_SIZE 6
 
 struct pkmn_species_t;
 
@@ -34,6 +35,10 @@ typedef struct pkmn_battler_t {
 	pkmn_move_t moves[PKMN_BATTLER_MOVE_COUNT];
     pkmn_status_t status;
 } pkmn_battler_t;
+
+typedef struct pkmn_party_t {
+	pkmn_battler_t battlers[PKMN_MAX_PARTY_SIZE];
+} pkmn_party_t;
 
 // https://bulbapedia.bulbagarden.net/wiki/Shiny_Pokémon
 bool pkmn_calculate_shininess(uint32_t PID, uint16_t TID, uint16_t SID);

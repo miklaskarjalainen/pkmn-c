@@ -132,6 +132,8 @@ pkmn_damage_t pkmn_calculate_damage(
     if (Stab) {
         dmg *= 1.5f;
     }
+    const float Random = pkmn_rand_range(85, 100) / 100.0f;
+    dmg *= Random;
 
     return (pkmn_damage_t) {
         .damage_done = dmg,

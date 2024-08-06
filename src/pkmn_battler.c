@@ -37,6 +37,8 @@ static void _pkmn_battler_learn_latest_moves(
 
 void pkmn_battler_heal(pkmn_battler_t* battler) {
     battler->current_hp = pkmn_battler_get_stats(battler).hp;
+    battler->status = STATUS_NONE;
+    battler->is_confused = false;
 
     // Restore PPs
     for (size_t i = 0; i < PKMN_BATTLER_MOVE_COUNT; i++) {
@@ -68,9 +70,11 @@ pkmn_battler_t pkmn_generate_battler(const struct pkmn_species_t* species, uint8
         .is_shiny = pkmn_calculate_shininess(PID, TID, SID),
 
         .level = level,
-        .current_hp = 0, // TODO: get hp stat
+        .current_hp = 0,
         .moves = { 0 },
+
         .status = STATUS_NONE,
+        .is_confused = false
     };
 
     _pkmn_battler_learn_latest_moves(&battler);

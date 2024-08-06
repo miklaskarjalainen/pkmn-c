@@ -32,8 +32,10 @@ typedef struct pkmn_battler_t {
     
     uint8_t level;
     uint8_t current_hp;
-	pkmn_move_t moves[PKMN_BATTLER_MOVE_COUNT];
+    pkmn_move_t moves[PKMN_BATTLER_MOVE_COUNT];
+
     pkmn_status_t status;
+    bool is_confused;
 } pkmn_battler_t;
 
 typedef struct pkmn_party_t {

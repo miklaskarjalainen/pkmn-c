@@ -37,6 +37,8 @@ typedef struct pkmn_battler_t {
 
 // https://bulbapedia.bulbagarden.net/wiki/Shiny_Pokémon
 bool pkmn_calculate_shininess(uint32_t PID, uint16_t TID, uint16_t SID);
+void pkmn_battler_heal(pkmn_battler_t* battler);
 pkmn_battler_t pkmn_generate_battler(const struct pkmn_species_t* species, uint8_t level);
+pkmn_stats_t pkmn_battler_get_stats(const pkmn_battler_t* battler);
 
 #endif

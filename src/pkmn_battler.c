@@ -2,6 +2,7 @@
 #include "pkmn_move.h"
 #include "pkmn_rand.h"
 #include "pkmn_species.h"
+#include "pkmn_stats.h"
 
 static void _pkmn_species_latest_moves(
     const pkmn_species_t* species,
@@ -34,6 +35,19 @@ static void _pkmn_battler_learn_latest_moves(
     }
 }
 
+void pkmn_battler_heal(pkmn_battler_t* battler) {
+    battler->current_hp = pkmn_battler_get_stats(battler).hp;
+
+    // Restore PPs
+    for (size_t i = 0; i < PKMN_BATTLER_MOVE_COUNT; i++) {
+        const uint8_t BasePP = battler->moves[i].move->base_pp;
+        const uint8_t PPUpCount = battler->moves[i].pp_ups;
+        const uint8_t ExtraPP = (BasePP / 5) * PPUpCount;
+
+        battler->moves[i].pp_left = BasePP + ExtraPP;
+    }
+}
+
 bool pkmn_calculate_shininess(uint32_t PID, uint16_t TID, uint16_t SID) {
     const uint16_t PID0_to_15  = PID & 0xFFFF;
     const uint16_t PID16_to_32 = (PID >> 16) & 0xFFFF;
@@ -60,5 +74,11 @@ pkmn_battler_t pkmn_generate_battler(const struct pkmn_species_t* species, uint8
     };
 
     _pkmn_battler_learn_latest_moves(&battler);
+    pkmn_battler_heal(&battler);
+
     return battler;
+}
+
+pkmn_stats_t pkmn_battler_get_stats(const pkmn_battler_t* battler) {
+    return pkmn_calc_stats(battler->level, &battler->species->base, &battler->iv, &battler->ev);
 }

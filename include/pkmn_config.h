@@ -25,6 +25,8 @@
     #define STDOUT_ERROR  STDOUT_RED STDOUT_BOLD
 #endif
 
+#define PKMN_FORCE_EXIT() *(volatile char*)NULL = 0 
+
 #define PKMN_INFO(...)                  \
     do {                                \
         printf(STDOUT_CYAN STDOUT_BOLD);\
@@ -38,8 +40,16 @@
             printf(STDOUT_ERROR "Error: " STDOUT_RESET "assertion failed at " __FILE__ ":%i '", __LINE__);  \
             printf(__VA_ARGS__);                                                                            \
             printf("'\n");                                                                                  \
-            exit(1);                                                                                        \
+            PKMN_FORCE_EXIT();                                                                              \
         }                                                                                                   \
+    } while(0)
+
+#define PKMN_PANIC(...) \
+    do {                                                                                                \
+        printf(STDOUT_ERROR "PANICKED: " STDOUT_RESET "at " __FILE__ ":%i '", __LINE__);                \
+        printf(__VA_ARGS__);                                                                            \
+        printf("'\n");                                                                                  \
+        PKMN_FORCE_EXIT();                                                                              \
     } while(0)
 
 #define UNUSED(var) (void)(var)
@@ -48,7 +58,7 @@
 #if __OPTIMIZE__
     #define PKMN_DEBUG_ASSERT(expr, ...)
 #else
-    #define PKMN_DEBUG_ASSERT(expr, ...) RUNTIME_ASSERT(expr, __VA_ARGS__)
+    #define PKMN_DEBUG_ASSERT(expr, ...) PKMN_RUNTIME_ASSERT(expr, __VA_ARGS__)
     
     // This is strategic, not allowing these to go into release builds.
     #define UNIMPLEMENTED(msg) PANIC("Unimplemented: " msg)

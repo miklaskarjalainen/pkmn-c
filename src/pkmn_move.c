@@ -26,9 +26,9 @@ pkmn_damage_t pkmn_calculate_damage(
     
     const int IsPhysical = move->category == CATEGORY_PHYSICAL;
     const uint16_t AtkStat = 
-        IsPhysical ? pkmn_calculate_stats_battler(attacker).atk : pkmn_calculate_stats_battler(attacker).spatk;
+        IsPhysical ? pkmn_battler_get_stats(attacker).atk : pkmn_battler_get_stats(attacker).spatk;
     const uint16_t DefStat = 
-        IsPhysical ? pkmn_calculate_stats_battler(defender).def : pkmn_calculate_stats_battler(defender).spdef;
+        IsPhysical ? pkmn_battler_get_stats(defender).def : pkmn_battler_get_stats(defender).spdef;
 
     float dmg = ((((2.0f*attacker->level)/5.0f)+2.0f) * move->power * AtkStat/DefStat) / 50.0f;
 

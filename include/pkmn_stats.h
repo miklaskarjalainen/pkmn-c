@@ -13,7 +13,9 @@ struct pkmn_battler_t;
 
 pkmn_stats_t pkmn_generate_empty_stats(void);
 pkmn_stats_t pkmn_generate_iv_stats(void);
-pkmn_stats_t pkmn_calculate_stats(uint8_t level, const pkmn_stats_t* base, const pkmn_stats_t* iv, const pkmn_stats_t* ev);
-pkmn_stats_t pkmn_calculate_stats_battler(const struct pkmn_battler_t* battler);
+
+uint16_t pkmn_calc_other_stat(uint8_t level, uint8_t base, uint8_t iv, uint8_t ev);
+uint16_t pkmn_calc_hp_stat(uint8_t level, uint8_t base, uint8_t iv, uint8_t ev);
+pkmn_stats_t pkmn_calc_stats(uint8_t level, const pkmn_stats_t* base, const pkmn_stats_t* iv, const pkmn_stats_t* ev);
 
 #endif

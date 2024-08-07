@@ -31,7 +31,7 @@ typedef struct pkmn_battler_t {
     bool is_shiny;
     
     uint8_t level;
-    uint8_t current_hp;
+    uint16_t current_hp;
     pkmn_move_t moves[PKMN_BATTLER_MOVE_COUNT];
 
     pkmn_status_t status;

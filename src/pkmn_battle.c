@@ -48,6 +48,13 @@ void pkmn_battle_move(pkmn_battle_t* battle, uint8_t move_index, bool is_opponen
 		move->move
 	);
     battle->turn_data.details[battle->turn_data._current_half_turn].user = attacker;
+    battle->turn_data.details[battle->turn_data._current_half_turn].target = defender;
+    battle->turn_data.details[battle->turn_data._current_half_turn].damage = dmg;
+	
+	if (dmg.damage_done > defender->current_hp) {
+		defender->current_hp = 0;
+		return;
+	}
 	defender->current_hp -= dmg.damage_done;
 }
 
@@ -121,7 +128,7 @@ pkmn_damage_t pkmn_calculate_damage(
     float dmg = ((((2.0f*attacker->level)/5.0f)+2.0f) * move->power * AtkStat/DefStat) / 50.0f;
 
     // TODO: Rest of the mechanics e.g weather, stab, burns, high crit ratio etc
-    const bool CriticalHit = pkmn_randf() <= CRITICAL_CHANCE;
+    const bool CriticalHit = pkmn_randf() <= 0.5f;
     if (CriticalHit) {
         dmg *= 2.0f;
     }

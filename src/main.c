@@ -7,6 +7,7 @@
 #include "pkmn_type.h"
 #include "pkmn_species.h"
 #include "pkmn_battler.h"
+#include "pkmn_battle.h"
 #include "pkmn_rand.h"
 
 #include "data/pkmn_move_data.h"
@@ -29,11 +30,11 @@ void print_species(const pkmn_species_t* species) {
 }
 
 void print_battler(const pkmn_battler_t* battler) {
-	pkmn_stats_t battler_stats = pkmn_calculate_stats_battler(battler);
+	pkmn_stats_t battler_stats = pkmn_battler_get_stats(battler);
 
 	printf("Battler: {\n");
 	printf("\tnickname: '%s'\n", battler->nickname);
-	printf("\tpid: %x\n", battler->pid);
+	printf("\tpid: %08X\n", battler->pid);
 	printf("\tlevel: '%u'\n", battler->level);
 	printf("\tstats: ");
 	print_stats(&battler_stats);
@@ -52,28 +53,77 @@ void print_battler(const pkmn_battler_t* battler) {
 	printf("}\n");
 }
 
-#include "pkmn_move_data.h"
-#include "pkmn_pokemon_data.h"
 
 int main(void) {
-	pkmn_init_seed(time(NULL));
+	uint32_t seed = time(NULL);
+	pkmn_init_seed(seed);
 
-    const pkmn_move_semantics_t* m = BULLETSEED; 
-    printf("%u\n", m->accuracy);
+	pkmn_party_t party = {
+		.battlers = {
+			pkmn_generate_battler(PIKACHU, 50),
+			pkmn_generate_battler(BLASTOISE, 50),
+			pkmn_generate_battler(VENUSAUR, 50),
+			pkmn_generate_battler(CHARIZARD, 50),
+			pkmn_generate_battler(ALAKAZAM, 50),
+			pkmn_generate_battler(PIDGEOT, 50),
+		}
+	};
 
-    pkmn_battler_t zekrom = pkmn_generate_battler(ZEKROM, 50);
-    pkmn_battler_t charmander = pkmn_generate_battler(CHARMANDER, 50); 
+	pkmn_party_t enemies = {
+		.battlers = {
+			pkmn_generate_battler(DUSCLOPS, 50),
+			pkmn_generate_battler(LUDICOLO, 50),
+			pkmn_generate_battler(SKARMORY, 50),
+			pkmn_generate_battler(ARMALDO, 50),
+			pkmn_generate_battler(LATIOS, 50),
+			pkmn_generate_battler(RAYQUAZA, 50),
+		}
+	};
 
-	pkmn_damage_t dmg = pkmn_calculate_damage(&zekrom, &charmander, THUNDER);
-
-    printf("dmg: { dmg = %u, crit = %i, stab = %i)\n", dmg.damage_done, dmg.is_critical, dmg.is_stab);
-	print_battler(&zekrom);
-	print_battler(&charmander);
+	pkmn_battle_t battle = pkmn_battle_init(&party, &enemies);
 	
+	printf("[Ally '%s' HP: %u]\n", battle.ally_active->species->name, battle.ally_active->current_hp);
+	printf("[Opp  '%s' HP: %u]\n", battle.opp_active->species->name , battle.opp_active->current_hp);
 
-    printf(
-        "IS SHINY %s\n", pkmn_calculate_shininess(0xE72DE53F, 5667, 5175) ? "true" : "false"
-    );
+	pkmn_battle_turn_data_t turn = pkmn_battle_turn(&battle,
+		(pkmn_battle_action_t){
+			.type = ACTION_MOVE,
+			.move_index = 0
+		},
+		(pkmn_battle_action_t){
+			.type = ACTION_MOVE,
+			.move_index = 2
+		}
+	);
+
+	pkmn_battle_half_turn_data_t* half_turn = &turn.details[0];
+
+	printf("'%s' USED '%s'!\n", 
+		half_turn->user->species->name,
+		half_turn->user->moves[half_turn->action.move_index].move->name
+	);
+	if (half_turn->damage.is_critical) {
+		printf("critical hit!\n");
+	}
+	if (!half_turn->target->current_hp) {
+		printf("'%s' fainted!\n", half_turn->target->species->name);
+	}
+
+	half_turn++;
+
+	printf("'%s' USED '%s'!\n",
+		half_turn->user->species->name,
+		half_turn->user->moves[half_turn->action.move_index].move->name
+	);
+	if (half_turn->damage.is_critical) {
+		printf("critical hit!\n");
+	}
+	if (!half_turn->target->current_hp) {
+		printf("'%s' fainted!\n", half_turn->target->species->name);
+	}
+
+	printf("[Ally '%s' HP: %u]\n", battle.ally_active->species->name, battle.ally_active->current_hp);
+	printf("[Opp  '%s' HP: %u]\n", battle.opp_active->species->name , battle.opp_active->current_hp);
 
     return 0;
 }

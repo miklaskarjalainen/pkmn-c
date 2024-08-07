@@ -36,15 +36,31 @@ typedef struct pkmn_battle_action_t {
 	};
 } pkmn_battle_action_t;
 
+typedef struct pkmn_battle_half_turn_data_t {
+	const struct pkmn_battler_t* user;
+	const struct pkmn_battler_t* target;
+	pkmn_battle_action_t action;
+	pkmn_damage_t damage;
+} pkmn_battle_half_turn_data_t;
+
 typedef struct pkmn_battle_turn_data_t {
 	uint32_t seed;
-	struct {
-        pkmn_battle_action_t action;
-		const struct pkmn_battler_t* user;
-		pkmn_damage_t damage;
-	} details[2];
-
+	pkmn_battle_half_turn_data_t details[2];
     uint8_t _current_half_turn;
+
+
+	// Theory behind this number, this is the most i can think of which would cause damage in a turn.
+	// [ surf-like move hits 3 other pokemon in a double battle, so that's 3 different damages per move
+	// pkmn1 move: 	SURF, SURF, SURF, ROCKY_HELMET, ROCKY_HELMET, ROCKY_HELMET, 
+	// pkmn2 move:	SURF, SURF, SURF, ROCKY_HELMET, ROCKY_HELMET, ROCKY_HELMET, 
+	// pkmn3 move:	SURF, SURF, SURF, ROCKY_HELMET, ROCKY_HELMET, ROCKY_HELMET, 
+	// pkmn4 move:	SURF, SURF, SURF, ROCKY_HELMET, ROCKY_HELMET, ROCKY_HELMET, 
+	// WEATHER, WEATHER, WEATHER, WEATHER, 
+	// CURSE, CURSE, CURSE, CURSE,
+	// TOXIC, TOXIC, TOXIC, TOXIC,
+	// BURN, BURN, BURN, BURN,
+	//]
+
 } pkmn_battle_turn_data_t;
 
 /*

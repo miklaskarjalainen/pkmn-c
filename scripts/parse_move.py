@@ -1,6 +1,6 @@
 from pbsparser import PBSParser
 
-PATH_TO_FILE = "<path to pokemon essentials' move.txt>"
+PATH_TO_FILE = "moves.txt"
 
 # parses the dictionary passed in and spits it out as a C struct
 class PBSMove:

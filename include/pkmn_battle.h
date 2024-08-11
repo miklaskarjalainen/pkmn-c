@@ -73,8 +73,8 @@ typedef struct pkmn_field_t {
 
 typedef struct pkmn_battle_t {
 	pkmn_field_t field;
-	struct pkmn_party_t* ally_party, *opp_party;
-	struct pkmn_battler_t* ally_active, *opp_active;
+	struct pkmn_party_t *ally_party, *opp_party;
+	struct pkmn_battler_t *ally_active, *opp_active;
 
 	pkmn_battle_turn_data_t turn_data;
 } pkmn_battle_t;
@@ -86,10 +86,12 @@ pkmn_damage_t pkmn_calculate_damage(
     const struct pkmn_battler_t* defender, 
     const struct pkmn_move_semantics_t* move
 );
+
 pkmn_battle_t pkmn_battle_init(
     struct pkmn_party_t* ally_party,
     struct pkmn_party_t* opponent_party
 );
+
 pkmn_battle_turn_data_t pkmn_battle_turn(
     pkmn_battle_t* battle,
     pkmn_battle_action_t ally_action,
@@ -99,17 +101,22 @@ pkmn_battle_turn_data_t pkmn_battle_turn(
 void pkmn_battle_do_action(
     pkmn_battle_t* battle,
     pkmn_battle_action_t action,
-    bool is_opponent
+    struct pkmn_battler_t** user,
+    struct pkmn_party_t* user_party,
+    struct pkmn_battler_t* target
 );
+
 void pkmn_battle_switch(
-    pkmn_battle_t* battle,
-    uint8_t party_index,
-    bool is_opponent
+	struct pkmn_battler_t** user,
+	struct pkmn_party_t* party,
+	uint8_t party_index
 );
+
 void pkmn_battle_move(
     pkmn_battle_t* battle,
-    uint8_t move_index,
-    bool is_opponent
+	struct pkmn_battler_t* user,
+    struct pkmn_battler_t* target,
+    uint8_t move_index
 );
 
 #endif

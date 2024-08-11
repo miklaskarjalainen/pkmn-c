@@ -99,8 +99,9 @@ pkmn_battle_turn_data_t pkmn_battle_turn(
 
 	// Ally goes first 
 	if (
-		AllyIsFaster && 
-		(!_pkmn_action_is_priority(opp_action) || _pkmn_action_is_priority(ally_action))
+		(AllyIsFaster && !_pkmn_action_is_priority(opp_action)) ||
+		(AllyIsFaster && _pkmn_action_is_priority(ally_action) && _pkmn_action_is_priority(opp_action)) ||
+		(_pkmn_action_is_priority(ally_action) && !_pkmn_action_is_priority(opp_action))
 	) {
 		pkmn_battle_do_action(battle, ally_action, false);
 		pkmn_battle_do_action(battle, opp_action, true);

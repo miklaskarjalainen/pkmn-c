@@ -2,6 +2,7 @@
 #include "pkmn_move.h"
 #include "pkmn_rand.h"
 #include "pkmn_species.h"
+#include "pkmn_config.h"
 #include "pkmn_stats.h"
 
 static void _pkmn_species_latest_moves(
@@ -36,17 +37,23 @@ static void _pkmn_battler_learn_latest_moves(
 }
 
 void pkmn_battler_heal(pkmn_battler_t* battler) {
+    PKMN_RUNTIME_ASSERT(battler, "battler is null");
+
     battler->current_hp = pkmn_battler_get_stats(battler).hp;
     battler->status = STATUS_NONE;
     battler->is_confused = false;
 
     // Restore PPs
     for (size_t i = 0; i < PKMN_BATTLER_MOVE_COUNT; i++) {
-        const uint8_t BasePP = battler->moves[i].move->base_pp;
-        const uint8_t PPUpCount = battler->moves[i].pp_ups;
-        const uint8_t ExtraPP = (BasePP / 5) * PPUpCount;
+        pkmn_move_t* pkmn_move = &battler->moves[i];
+        if (pkmn_move->move == NULL) {
+            continue;
+        }
 
-        battler->moves[i].pp_left = BasePP + ExtraPP;
+        const uint8_t BasePP = pkmn_move->move->base_pp;
+        const uint8_t PPUpCount = pkmn_move->pp_ups;
+        const uint8_t ExtraPP = (BasePP / 5) * PPUpCount;
+        pkmn_move->pp_left = BasePP + ExtraPP;
     }
 }
 

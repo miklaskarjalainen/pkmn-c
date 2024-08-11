@@ -34,6 +34,29 @@ extern "C" {
     }                                           \
 }
 
+TEST_CASE("Battle: Fainting", "[pkmn]") {
+	pkmn_init_seed(0x69420);
+
+    pkmn_party_t party = DEMO_TEAM_1(50);
+    pkmn_party_t enemies = DEMO_TEAM_2(5);
+
+    pkmn_battle_t battle = pkmn_battle_init(&party, &enemies);
+    pkmn_battle_turn_data_t turn = pkmn_battle_turn(&battle,
+        (pkmn_battle_action_t){
+            .type = ACTION_MOVE,
+            .move_index = 1
+        },
+        (pkmn_battle_action_t){
+            .type = ACTION_MOVE,
+            .move_index = 2
+        }
+    );
+
+    // Second move didn't happen, because the pokemon got fainted.
+    REQUIRE(turn.details[0].target->current_hp == 0);
+    REQUIRE(turn.details[1].action.type == ACTION_NULL);
+}
+
 TEST_CASE("Battle: switch priority", "[pkmn]") {
 	pkmn_init_seed(0x69420);
 
@@ -44,7 +67,7 @@ TEST_CASE("Battle: switch priority", "[pkmn]") {
         pkmn_battle_turn_data_t turn = pkmn_battle_turn(&battle,
             (pkmn_battle_action_t){
                 .type = ACTION_SWITCH,
-                .move_index = 0
+                .switch_index = 0
             },
             (pkmn_battle_action_t){
                 .type = ACTION_MOVE,
@@ -66,7 +89,7 @@ TEST_CASE("Battle: switch priority", "[pkmn]") {
             },
             (pkmn_battle_action_t){
                 .type = ACTION_SWITCH,
-                .move_index = 2
+                .switch_index = 2
             }
         );
     
@@ -80,7 +103,7 @@ TEST_CASE("Battle: switch priority", "[pkmn]") {
         pkmn_battle_turn_data_t turn = pkmn_battle_turn(&battle,
             (pkmn_battle_action_t){
                 .type = ACTION_SWITCH,
-                .move_index = 0
+                .switch_index = 0
             },
             (pkmn_battle_action_t){
                 .type = ACTION_MOVE,
@@ -102,7 +125,7 @@ TEST_CASE("Battle: switch priority", "[pkmn]") {
             },
             (pkmn_battle_action_t){
                 .type = ACTION_SWITCH,
-                .move_index = 2
+                .switch_index = 2
             }
         );
     

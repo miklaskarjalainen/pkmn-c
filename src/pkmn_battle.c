@@ -1,5 +1,3 @@
-#include <stdio.h>
-
 #include "pkmn_battle.h"
 #include "pkmn_battler.h"
 #include "pkmn_config.h"
@@ -22,19 +20,20 @@ pkmn_battle_t pkmn_battle_init(pkmn_party_t* ally_party, pkmn_party_t* opponent_
 	};
 }
 
-void pkmn_battle_switch(pkmn_battle_t* battle, uint8_t party_index, bool is_opponent) {
-    if (is_opponent) {
-	    battle->turn_data.details[battle->turn_data._current_half_turn].user = battle->opp_active;
-		battle->opp_active = &battle->opp_party->battlers[party_index];
-		return;
-	}
-	battle->turn_data.details[battle->turn_data._current_half_turn].user = battle->ally_active;
-	battle->ally_active = &battle->ally_party->battlers[party_index];
+void pkmn_battle_switch(
+	pkmn_battler_t** user,
+	pkmn_party_t* party,
+	uint8_t party_index
+) {
+	*user = &party->battlers[party_index];
 }
 
-void pkmn_battle_move(pkmn_battle_t* battle, uint8_t move_index, bool is_opponent) {
-	pkmn_battler_t* attacker = is_opponent ? battle->opp_active  : battle->ally_active;
-	pkmn_battler_t* defender = is_opponent ? battle->ally_active : battle->opp_active;
+void pkmn_battle_move(
+	pkmn_battle_t* battle,
+	pkmn_battler_t* attacker,
+    pkmn_battler_t* defender,
+	uint8_t move_index
+) {
 	pkmn_move_t* move = &attacker->moves[move_index];
 
 	PKMN_DEBUG_ASSERT(attacker, "'attacker' IS NULL");
@@ -47,27 +46,40 @@ void pkmn_battle_move(pkmn_battle_t* battle, uint8_t move_index, bool is_opponen
 		defender,
 		move->move
 	);
-    battle->turn_data.details[battle->turn_data._current_half_turn].user = attacker;
-    battle->turn_data.details[battle->turn_data._current_half_turn].target = defender;
-    battle->turn_data.details[battle->turn_data._current_half_turn].damage = dmg;
 	
 	if (dmg.damage_done > defender->current_hp) {
 		defender->current_hp = 0;
-		return;
 	}
-	defender->current_hp -= dmg.damage_done;
+	else {
+		defender->current_hp -= dmg.damage_done;
+	}
+
+    battle->turn_data.details[battle->turn_data._current_half_turn].user = attacker;
+    battle->turn_data.details[battle->turn_data._current_half_turn].target = defender;
+    battle->turn_data.details[battle->turn_data._current_half_turn].damage = dmg;
 }
 
-void pkmn_battle_do_action(pkmn_battle_t* battle, pkmn_battle_action_t action, bool is_opponent) {
-    battle->turn_data.details[battle->turn_data._current_half_turn].action = action;
-    
-    switch (action.type) {
+
+void pkmn_battle_do_action(
+	pkmn_battle_t* battle,
+	pkmn_battle_action_t action,
+	struct pkmn_battler_t** user,
+	struct pkmn_party_t* user_party,
+	struct pkmn_battler_t* target
+) {
+	if ((*user)->current_hp == 0) {
+		return;
+	}
+
+	battle->turn_data.details[battle->turn_data._current_half_turn].action = action;
+
+	switch (action.type) {
 		case ACTION_MOVE: {
-			pkmn_battle_move(battle, action.move_index, is_opponent);
+			pkmn_battle_move(battle, *user, target, action.move_index);
 			break;
 		}
 		case ACTION_SWITCH: {
-			pkmn_battle_switch(battle, action.switch_index, is_opponent);
+			pkmn_battle_switch(user, user_party, action.switch_index);
 			break;
 		}
 
@@ -77,7 +89,7 @@ void pkmn_battle_do_action(pkmn_battle_t* battle, pkmn_battle_action_t action, b
 		}
 	}
 
-    battle->turn_data._current_half_turn++;
+	battle->turn_data._current_half_turn++;
 }
 
 pkmn_battle_turn_data_t pkmn_battle_turn(
@@ -103,11 +115,19 @@ pkmn_battle_turn_data_t pkmn_battle_turn(
 		(AllyIsFaster && _pkmn_action_is_priority(ally_action) && _pkmn_action_is_priority(opp_action)) ||
 		(_pkmn_action_is_priority(ally_action) && !_pkmn_action_is_priority(opp_action))
 	) {
-		pkmn_battle_do_action(battle, ally_action, false);
-		pkmn_battle_do_action(battle, opp_action, true);
+		pkmn_battle_do_action(
+			battle, ally_action, &battle->ally_active, battle->ally_party,battle->opp_active
+		);
+		pkmn_battle_do_action(
+			battle, opp_action, &battle->opp_active, battle->opp_party, battle->ally_active
+		);
 	} else {
-		pkmn_battle_do_action(battle, opp_action, true);
-		pkmn_battle_do_action(battle, ally_action, false);
+		pkmn_battle_do_action(
+			battle, opp_action, &battle->opp_active, battle->opp_party, battle->ally_active
+		);
+		pkmn_battle_do_action(
+			battle, ally_action, &battle->ally_active, battle->ally_party,battle->opp_active
+		);
 	}
 
 	return battle->turn_data;

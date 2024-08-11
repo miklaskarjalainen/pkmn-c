@@ -28,7 +28,7 @@ typedef enum pkmn_type_t {
     TYPE_COUNT,
 } pkmn_type_t ;
 
-inline const char* pkmn_type_to_str(pkmn_type_t type) {
+static const char* pkmn_type_to_str(pkmn_type_t type) {
 	static const char* sTypesStr[] = {
 		[TYPE_NULL] = "TYPE_NULL",
 		[TYPE_NORMAL] = "TYPE_NORMAL",

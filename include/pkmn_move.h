@@ -7,6 +7,8 @@
 #include "pkmn_config.h"
 #include "pkmn_type.h"
 
+#define PKMN_MAX_MOVE_NAME_LENGTH 32
+
 struct pkmn_battler_t;
 
 typedef enum pkmn_move_category_t {
@@ -25,7 +27,7 @@ typedef enum pkmn_move_function_code_t {
 } pkmn_move_function_code_t;
 
 typedef struct pkmn_move_semantics_t {
-	char name[PKMN_MAX_NAME_LENGTH];
+	char name[PKMN_MAX_MOVE_NAME_LENGTH];
 	pkmn_move_category_t category;
 	pkmn_type_t type;
 	uint8_t power;

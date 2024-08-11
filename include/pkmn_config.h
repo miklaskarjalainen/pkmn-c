@@ -1,6 +1,9 @@
 #ifndef PKMN_CONFIG_H
 #define PKMN_CONFIG_H
 
+// FIXME: remove all of lib from release build, this is just for the assert prints.
+#include <stdio.h>
+
 #define PKMN_MAX_NAME_LENGTH 16
 #define PKMN_ARRAY_SIZE(array) (size_t)(sizeof(array) / sizeof(*array))
 

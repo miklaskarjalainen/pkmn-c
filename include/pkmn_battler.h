@@ -2,6 +2,7 @@
 #define PKMN_BATTLER_H
 
 #include <stdbool.h>
+#include <stddef.h>
 #include "pkmn_config.h"
 #include "pkmn_stats.h"
 #include "pkmn_move.h"

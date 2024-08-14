@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include <stdio.h>
 #include <time.h>
 
@@ -124,6 +125,19 @@ int main(void) {
 
 	printf("[Ally '%s' HP: %u]\n", battle.ally_active->species->name, battle.ally_active->current_hp);
 	printf("[Opp  '%s' HP: %u]\n", battle.opp_active->species->name , battle.opp_active->current_hp);
+
+	printf("Experience gained %u xp points", 
+		pkmn_xp_gained_raw(
+			CHANSEY->base_xp,
+			50,
+			false,
+			false,
+			4,
+			0,
+			false,
+			false
+		)
+	);
 
     return 0;
 }

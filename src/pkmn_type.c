@@ -126,3 +126,31 @@ uint32_t pkmn_xp_total_at_level(pkmn_growth_rate_t rate, uint8_t current_level) 
 uint32_t pkmn_xp_needed_to_level_up(pkmn_growth_rate_t rate, uint8_t current_level) {
     return pkmn_xp_total_at_level(rate, current_level + 1) - pkmn_xp_total_at_level(rate, current_level);
 }
+
+// https://bulbapedia.bulbagarden.net/wiki/Experience#Experience_gain_in_battle
+// uses the formula for the first 1-4 gens.
+static uint32_t pkmn_xp_gained_raw(
+    uint16_t b, uint8_t l,
+    bool trainer_pokemon,
+    bool outsider_pokemon,
+    uint8_t participants,
+    uint8_t share_count,
+    bool current_share,
+    bool current_lucky_egg
+) {
+    PKMN_RUNTIME_ASSERT(participants > 0, "participant count is 0!");
+
+    const float A = trainer_pokemon ? 1.5f : 1.0f;
+    const float E = current_lucky_egg ? 1.5f : 1.0f;
+    const float T = outsider_pokemon ? 1.5f : 1.0f;
+    const uint8_t S = 
+        share_count ? 
+            current_share ? 
+                share_count * 2
+            :
+                participants * 2
+        :
+            participants;
+    
+    return ((b * l) / 7.0f) * (1.0f / (float)S) * E * A * T;
+}

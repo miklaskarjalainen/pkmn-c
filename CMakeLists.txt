@@ -14,7 +14,7 @@ set(
     include/pkmn_rand.h src/pkmn_rand.c
     include/pkmn_species.h
     include/pkmn_stats.h src/pkmn_stats.c
-    include/pkmn_type.h
+    include/pkmn_type.h src/pkmn_type.c
 
     include/data/pkmn_move_data.h
     include/data/pkmn_pokemon_data.h
@@ -36,7 +36,14 @@ if (BUILD_TESTS)
     )
     FetchContent_MakeAvailable(Catch2)
 
-    add_executable(tests ${SOURCE_FILES} tests/test_main.cpp tests/test_pkmn_battler.cpp tests/test_pkmn_battle.cpp)
+    add_executable(
+        tests ${SOURCE_FILES}
+        tests/test_main.cpp
+        tests/test_pkmn_battler.cpp
+        tests/test_pkmn_battle.cpp
+        tests/test_pkmn_type.cpp
+    )
+
     target_link_libraries(tests PRIVATE Catch2::Catch2)
     target_include_directories(tests PRIVATE ${INCLUDE_DIRS} Catch2::Catch2)
 

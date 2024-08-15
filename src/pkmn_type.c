@@ -1,6 +1,7 @@
 #include "pkmn_type.h"
-#include "data/pkmn_pokemon_data.h"
 #include "pkmn_config.h"
+#include "pkmn_math.h"
+#include "data/pkmn_pokemon_data.h"
 
 const char* pkmn_type_to_str(pkmn_type_t type) {
 	static const char* sTypesStr[] = {
@@ -29,43 +30,28 @@ const char* pkmn_type_to_str(pkmn_type_t type) {
 	return sTypesStr[type];
 }
 
-static uint32_t _pkmn_pow(uint32_t base, uint32_t power) {
-    if (base == 0 ) {
-        return 0;
-    }
-    if (power == 0) {
-        return 1;
-    }
-
-    uint32_t r = base;
-    for (uint32_t i = 1; i < power; i++ ) {
-        r *= base;
-    }
-    return r;
-}
-
 static uint32_t _pkmn_grow_fast(uint8_t current_level) {
-    return (4 * _pkmn_pow(current_level, 3)) / 5;
+    return (4 * pkmn_pow(current_level, 3)) / 5;
 }
 
 static uint32_t _pkmn_grow_medium_fast(uint8_t current_level) {
-    return _pkmn_pow(current_level, 3);
+    return pkmn_pow(current_level, 3);
 }
 
 static uint32_t _pkmn_grow_medium_slow(uint8_t current_level) {
     const float Div = (6.0f/5.0f);
-    const uint32_t LevelPow = _pkmn_pow(current_level, 3);
+    const uint32_t LevelPow = pkmn_pow(current_level, 3);
     const uint32_t Subtract = 15 * (current_level * current_level);
     const uint32_t Addition = 100 * current_level - 140;
     return Div * LevelPow - Subtract + Addition; 
 }
 
 static uint32_t _pkmn_grow_slow(uint8_t current_level) {
-    return (5 * _pkmn_pow(current_level, 3)) / 4;
+    return (5 * pkmn_pow(current_level, 3)) / 4;
 }
 
 static uint32_t _pkmn_grow_erratic(uint8_t l) {
-    const uint32_t Powered = _pkmn_pow(l, 3);
+    const uint32_t Powered = pkmn_pow(l, 3);
 
     if (l < 50) {
         return (Powered * (100-l)) / 50;
@@ -80,7 +66,7 @@ static uint32_t _pkmn_grow_erratic(uint8_t l) {
 }
 
 static uint32_t _pkmn_grow_fluctuating(uint8_t l) {
-    const uint32_t Powered = _pkmn_pow(l, 3);
+    const uint32_t Powered = pkmn_pow(l, 3);
     if (l < 15) {
         return (Powered * (((l + 1) / 3) + 24)) / 50;
     }
@@ -129,7 +115,7 @@ uint32_t pkmn_xp_needed_to_level_up(pkmn_growth_rate_t rate, uint8_t current_lev
 
 // https://bulbapedia.bulbagarden.net/wiki/Experience#Experience_gain_in_battle
 // uses the formula for the first 1-4 gens.
-static uint32_t pkmn_xp_gained_raw(
+uint32_t pkmn_xp_gained_raw(
     uint16_t b, uint8_t l,
     bool trainer_pokemon,
     bool outsider_pokemon,
@@ -151,6 +137,5 @@ static uint32_t pkmn_xp_gained_raw(
                 participants * 2
         :
             participants;
-    
     return ((b * l) / 7.0f) * (1.0f / (float)S) * E * A * T;
 }

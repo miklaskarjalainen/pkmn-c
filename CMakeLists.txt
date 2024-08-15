@@ -10,6 +10,7 @@ set(
     include/pkmn_battle.h src/pkmn_battle.c
     include/pkmn_battler.h src/pkmn_battler.c
     include/pkmn_config.h
+    include/pkmn_math.h src/pkmn_math.c
     include/pkmn_move.h src/pkmn_move.c
     include/pkmn_rand.h src/pkmn_rand.c
     include/pkmn_species.h
@@ -19,6 +20,7 @@ set(
     include/data/pkmn_move_data.h
     include/data/pkmn_pokemon_data.h
 )
+
 set(
     INCLUDE_DIRS
     include/

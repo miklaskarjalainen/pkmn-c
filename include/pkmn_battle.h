@@ -119,4 +119,14 @@ void pkmn_battle_move(
     uint8_t move_index
 );
 
+// How many times the ball shakes after trying to capture.
+// 4 Shakes means a capture
+int pkmn_ball_shakes(
+	const struct pkmn_battler_t* battler,
+	uint16_t ball_catch_rate
+);
+
+float pkmn_battler_catch_rate(const struct pkmn_battler_t* battler, uint16_t ball_catch_rate);
+
+
 #endif

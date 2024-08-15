@@ -9,6 +9,7 @@ class PBSPokemon:
     base_stats: list[int] = []
     level_up: list[any] = []
     base_xp: int = 100
+    catch_rate: int = 255
 
     def __init__(self, pokemon_data):
         self.name = pokemon_data["Name"]
@@ -18,6 +19,7 @@ class PBSPokemon:
         self.base_stats = pokemon_data["BaseStats"].split(",")
         self.level_up = pokemon_data["Moves"].split(",")
         self.base_xp = int(pokemon_data["BaseExp"])
+        self.catch_rate = int(pokemon_data["CatchRate"])
 
     def _level_ups(self) -> str:
         _moves: str = "{\n"
@@ -34,6 +36,7 @@ f"""{{
         .types = {{{self.types[0]}, {self.types[1]}}},
         .base = PKMN_STATS({self.base_stats[0]}, {self.base_stats[1]}, {self.base_stats[2]}, {self.base_stats[3]}, {self.base_stats[4]}, {self.base_stats[5]}),
         .base_xp = {self.base_xp},
+        .catch_rate = {self.catch_rate},
         .level_up_moves = {self._level_ups()},
     }}"""
 

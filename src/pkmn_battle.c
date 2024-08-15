@@ -3,6 +3,8 @@
 #include "pkmn_config.h"
 #include "pkmn_rand.h"
 #include "pkmn_species.h"
+#include "pkmn_stats.h"
+#include "pkmn_math.h"
 
 static bool _pkmn_action_is_priority(pkmn_battle_action_t action) {
 	return action.type != ACTION_MOVE;
@@ -169,5 +171,28 @@ pkmn_damage_t pkmn_calculate_damage(
         .is_stab = Stab,
         .is_super_effective = false,
     };
+}
+
+float pkmn_battler_catch_rate(const pkmn_battler_t* battler, uint16_t ball_catch_rate) {
+	const uint16_t MaxHp = pkmn_battler_get_stats(battler).hp;
+	const uint16_t CurHp = battler->current_hp;
+	const uint8_t CatchRate = battler->species->catch_rate;
+	const float BallMultiplier = ball_catch_rate / 4096.0f;
+	const float A = ((3 * MaxHp - 2 * CurHp) / (3.0f * MaxHp)) * CatchRate * BallMultiplier;
+	return A;
+}
+
+int pkmn_ball_shakes(const pkmn_battler_t* battler, uint16_t ball_catch_rate) {
+	// https://bulbapedia.bulbagarden.net/wiki/Catch_rate#Capture_method_(Generation_III-IV)
+	const float A = pkmn_battler_catch_rate(battler, ball_catch_rate);
+	const uint16_t B = pkmn_sqrt(pkmn_sqrt(A/1044480.0f)) * 65535;
+	
+	for (int i = 0; i < 4; i++) {
+		const uint16_t RandNum = pkmn_rand_u16();
+		if (RandNum >= B) {
+			return i;
+		}
+	}
+	return 4;
 }
 

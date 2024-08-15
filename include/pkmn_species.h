@@ -14,6 +14,7 @@ typedef struct pkmn_species_t {
     pkmn_type_t types[2];
     pkmn_stats_t base, yield;
     uint16_t base_xp;
+    uint8_t catch_rate;
     
     struct {
         const struct pkmn_move_semantics_t* move;

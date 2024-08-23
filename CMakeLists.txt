@@ -8,6 +8,7 @@ set(CMAKE_C_EXTENSIONS off)
 set(
     SOURCE_FILES
     include/pkmn_battle.h src/pkmn_battle.c
+    include/pkmn_battle_cli.h src/pkmn_battle_cli.c
     include/pkmn_battler.h src/pkmn_battler.c
     include/pkmn_config.h
     include/pkmn_math.h src/pkmn_math.c

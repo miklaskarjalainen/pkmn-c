@@ -9,6 +9,7 @@
 #include "pkmn_species.h"
 #include "pkmn_battler.h"
 #include "pkmn_battle.h"
+#include "pkmn_battle_cli.h"
 #include "pkmn_rand.h"
 
 #include "data/pkmn_move_data.h"
@@ -82,62 +83,7 @@ int main(void) {
 	};
 
 	pkmn_battle_t battle = pkmn_battle_init(&party, &enemies);
-	
-	printf("[Ally '%s' HP: %u]\n", battle.ally_active->species->name, battle.ally_active->current_hp);
-	printf("[Opp  '%s' HP: %u]\n", battle.opp_active->species->name , battle.opp_active->current_hp);
-
-	pkmn_battle_turn_data_t turn = pkmn_battle_turn(&battle,
-		(pkmn_battle_action_t){
-			.type = ACTION_MOVE,
-			.move_index = 0
-		},
-		(pkmn_battle_action_t){
-			.type = ACTION_MOVE,
-			.move_index = 2
-		}
-	);
-
-	pkmn_battle_half_turn_data_t* half_turn = &turn.details[0];
-
-	printf("'%s' USED '%s'!\n", 
-		half_turn->user->species->name,
-		half_turn->user->moves[half_turn->action.move_index].move->name
-	);
-	if (half_turn->damage.is_critical) {
-		printf("critical hit!\n");
-	}
-	if (!half_turn->target->current_hp) {
-		printf("'%s' fainted!\n", half_turn->target->species->name);
-	}
-
-	half_turn++;
-
-	printf("'%s' USED '%s'!\n",
-		half_turn->user->species->name,
-		half_turn->user->moves[half_turn->action.move_index].move->name
-	);
-	if (half_turn->damage.is_critical) {
-		printf("critical hit!\n");
-	}
-	if (!half_turn->target->current_hp) {
-		printf("'%s' fainted!\n", half_turn->target->species->name);
-	}
-
-	printf("[Ally '%s' HP: %u]\n", battle.ally_active->species->name, battle.ally_active->current_hp);
-	printf("[Opp  '%s' HP: %u]\n", battle.opp_active->species->name , battle.opp_active->current_hp);
-
-	printf("Experience gained %u xp points", 
-		pkmn_xp_gained_raw(
-			CHANSEY->base_xp,
-			50,
-			false,
-			false,
-			4,
-			0,
-			false,
-			false
-		)
-	);
+	pkmn_cli_battle(&battle);
 
     return 0;
 }

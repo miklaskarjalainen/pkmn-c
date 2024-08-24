@@ -113,38 +113,20 @@ pkmn_battle_turn_data_t pkmn_battle_turn(
     pkmn_battle_action_t opp_action
 ) {
 	// Init turn data
-	battle->turn_data = (pkmn_battle_turn_data_t){ 0 };
-	battle->turn_data.seed = pkmn_rand_get_seed();
-
+	pkmn_battle_turn_data_t turn_data = (pkmn_battle_turn_data_t){ 0 };
+	turn_data.seed = pkmn_rand_get_seed();
 
 	pkmn_battle_action_t actions[] = {ally_action, opp_action};
 	_pkmn_sort_actions(actions,PKMN_ARRAY_SIZE(actions));
 
-
-	/*
-	// Ally goes first 
-	if (
-		(AllyIsFaster && !_pkmn_action_is_priority(opp_action)) ||
-		(AllyIsFaster && _pkmn_action_is_priority(ally_action) && _pkmn_action_is_priority(opp_action)) ||
-		(_pkmn_action_is_priority(ally_action) && !_pkmn_action_is_priority(opp_action))
-	) {
-		pkmn_battle_do_action(
-			battle, ally_action, &battle->ally_active, battle->ally_party,battle->opp_active
-		);
-		pkmn_battle_do_action(
-			battle, opp_action, &battle->opp_active, battle->opp_party, battle->ally_active
-		);
-	} else {
-		pkmn_battle_do_action(
-			battle, opp_action, &battle->opp_active, battle->opp_party, battle->ally_active
-		);
-		pkmn_battle_do_action(
-			battle, ally_action, &battle->ally_active, battle->ally_party,battle->opp_active
-		);
+	for (size_t action_idx = 0; action_idx < PKMN_ARRAY_SIZE(actions); action_idx++) {
+		pkmn_battle_do_action(battle, actions[action_idx]);
+		
+		// save to performed actions
+		turn_data.actions[action_idx] = actions[action_idx];
 	}
-	*/
 
-	return battle->turn_data;
+	return turn_data;
 }
 
 pkmn_damage_t pkmn_calculate_damage(

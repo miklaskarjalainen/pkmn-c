@@ -103,7 +103,7 @@ typedef struct pkmn_battle_t {
 	struct pkmn_party_t *ally_party, *opp_party;
 	struct pkmn_battler_t *ally_active, *opp_active;
 
-	pkmn_battle_turn_data_t turn_data;
+	// pkmn_battle_turn_data_t turn_data;
 } pkmn_battle_t;
 
 // https://bulbapedia.bulbagarden.net/wiki/Damage

@@ -7,6 +7,7 @@
 struct pkmn_battler_t;
 struct pkmn_party_t;
 struct pkmn_move_semantics_t;
+struct pkmn_move_t;
 
 /*
     Turn details
@@ -22,45 +23,71 @@ typedef struct pkmn_damage_t {
 typedef enum pkmn_battle_action_type {
 	ACTION_NULL = 0,
 	ACTION_MOVE,
-	ACTION_ITEM,
-	ACTION_SWITCH,
-	ACTION_RUN
+	ACTION_SWITCH
 } pkmn_battle_action_type;
+
+typedef struct pkmn_battle_move_action_t {
+	struct pkmn_battler_t *source_pkmn, *target_pkmn;
+	struct pkmn_move_t* move;
+} pkmn_battle_move_action_t;
+
+typedef struct pkmn_battle_switch_action_t {
+	struct pkmn_battler_t **source_pkmn, *target_pkmn;
+} pkmn_battle_switch_action_t;
 
 typedef struct pkmn_battle_action_t {
 	pkmn_battle_action_type type;
+	uint8_t priority; // action priority (lower goes first)
+	uint16_t speed;
 	union {
-		uint8_t move_index;
-		uint8_t switch_index;
-		uint16_t item_id;
+		pkmn_battle_move_action_t move_action;
+		pkmn_battle_switch_action_t switch_action;
 	};
 } pkmn_battle_action_t;
 
-typedef struct pkmn_battle_half_turn_data_t {
-	const struct pkmn_battler_t* user;
-	const struct pkmn_battler_t* target;
-	pkmn_battle_action_t action;
+#define PKMN_ACTION_SWITCH(from, to) 				\
+(pkmn_battle_action_t) {							\
+	.type = ACTION_SWITCH, 							\
+	.priority = 1,									\
+	.speed = pkmn_battler_get_stats(from).speed,	\
+	.switch_action = {								\
+		.source_pkmn = &from,						\
+		.target_pkmn = to,							\
+	}												\
+}
+
+#define PKMN_ACTION_MOVE(src, target, move_idx)		\
+(pkmn_battle_action_t) {							\
+	.type = ACTION_MOVE, 							\
+	.priority = 2,									\
+	.speed = pkmn_battler_get_stats(src).speed,		\
+	.move_action = {								\
+		.source_pkmn = src,							\
+		.target_pkmn = target,						\
+		.move = &src->moves[move_idx],				\
+	}												\
+}
+
+typedef enum pkmn_battle_damage_cause_type {
+	DAMAGE_CAUSE_NIL = 0,
+	DAMAGE_CAUSE_MOVE,
+	DAMAGE_CAUSE_WEATHER,
+
+	DAMAGE_CAUSE_CONFUSION,
+	DAMAGE_CAUSE_STATUS,
+	DAMAGE_CAUSE_CURSE,
+	DAMAGE_CAUSE_COUNT,
+} pkmn_battle_damage_cause_type;
+
+typedef struct pkmn_damage_cause_t {
+	pkmn_battle_damage_cause_type type;
 	pkmn_damage_t damage;
-} pkmn_battle_half_turn_data_t;
+} pkmn_damage_cause_t;
 
 typedef struct pkmn_battle_turn_data_t {
 	uint32_t seed;
-	pkmn_battle_half_turn_data_t details[2];
-    uint8_t _current_half_turn;
-
-
-	// Theory behind this number, this is the most i can think of which would cause damage in a turn.
-	// [ surf-like move hits 3 other pokemon in a double battle, so that's 3 different damages per move
-	// pkmn1 move: 	SURF, SURF, SURF, ROCKY_HELMET, ROCKY_HELMET, ROCKY_HELMET, 
-	// pkmn2 move:	SURF, SURF, SURF, ROCKY_HELMET, ROCKY_HELMET, ROCKY_HELMET, 
-	// pkmn3 move:	SURF, SURF, SURF, ROCKY_HELMET, ROCKY_HELMET, ROCKY_HELMET, 
-	// pkmn4 move:	SURF, SURF, SURF, ROCKY_HELMET, ROCKY_HELMET, ROCKY_HELMET, 
-	// WEATHER, WEATHER, WEATHER, WEATHER, 
-	// CURSE, CURSE, CURSE, CURSE,
-	// TOXIC, TOXIC, TOXIC, TOXIC,
-	// BURN, BURN, BURN, BURN,
-	//]
-
+	pkmn_battle_action_t actions[2];
+	struct pkmn_damage_cause_t turn_damages[32];
 } pkmn_battle_turn_data_t;
 
 /*
@@ -100,23 +127,17 @@ pkmn_battle_turn_data_t pkmn_battle_turn(
 
 void pkmn_battle_do_action(
     pkmn_battle_t* battle,
-    pkmn_battle_action_t action,
-    struct pkmn_battler_t** user,
-    struct pkmn_party_t* user_party,
-    struct pkmn_battler_t* target
+    pkmn_battle_action_t action
 );
 
 void pkmn_battle_switch(
-	struct pkmn_battler_t** user,
-	struct pkmn_party_t* party,
-	uint8_t party_index
+    pkmn_battle_t* battle,
+	pkmn_battle_switch_action_t action
 );
 
 void pkmn_battle_move(
     pkmn_battle_t* battle,
-	struct pkmn_battler_t* user,
-    struct pkmn_battler_t* target,
-    uint8_t move_index
+	pkmn_battle_move_action_t action
 );
 
 // How many times the ball shakes after trying to capture.

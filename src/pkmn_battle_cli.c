@@ -3,8 +3,11 @@
 #include "pkmn_battle_cli.h"
 #include "pkmn_battle.h"
 #include "pkmn_battler.h"
+#include "pkmn_move.h"
+#include "pkmn_rand.h"
 #include "pkmn_stats.h"
 #include "pkmn_species.h"
+#include "pkmn_config.h"
 
 static void print_stats(const pkmn_stats_t* stats) {
 	printf("[%u, %u, %u, %u, %u, %u]\n", stats->hp, stats->atk, stats->def, stats->spatk, stats->spdef, stats->speed);
@@ -45,7 +48,7 @@ static void print_battler(const pkmn_battler_t* battler) {
 	printf("}\n");
 }
 
-static void pkmn_print_field(const pkmn_battle_t* battle) {
+static void _pkmn_print_field(const pkmn_battle_t* battle) {
     pkmn_stats_t ally_stats = pkmn_battler_get_stats(battle->ally_active);
     pkmn_stats_t opp_stats = pkmn_battler_get_stats(battle->opp_active);
 
@@ -64,14 +67,92 @@ static void pkmn_print_field(const pkmn_battle_t* battle) {
 
 }
 
+static void _pkmn_print_action_move(const pkmn_battle_move_action_t* action) {
+    printf("\t\t.move = '%s'\n", action->move->move->name);
+    printf("\t\t.source_pkmn = '%s'\n", action->source_pkmn->species->name);
+    printf("\t\t.target_pkmn = '%s'\n", action->target_pkmn->species->name);
+}
+
+static void _pkmn_print_action_switch(const pkmn_battle_switch_action_t* action) {
+    printf("\t\t.source_pkmn = '%s'\n", (*action->source_pkmn)->species->name);
+    printf("\t\t.target_pkmn = '%s'\n", action->target_pkmn->species->name);
+}
+
+static void _pkmn_print_action(const pkmn_battle_action_t* action) {
+    printf("Action {\n");
+    printf("\t.type = %s\n", action->type == ACTION_MOVE ? "ACTION_MOVE" : "ACTION_SWITCH");
+    printf("\t.priority = %u\n", action->priority);
+    printf("\t.action = {\n");
+    if (action->type == ACTION_MOVE) {
+        _pkmn_print_action_move(&action->move_action);
+    }
+    else {
+        _pkmn_print_action_switch(&action->switch_action);
+    }
+    printf("\t}\n}\n");
+}
+
+pkmn_battle_action_t _pkmn_print_options(const pkmn_battle_t* battle) {
+    printf("choose one of the the following:\n");
+
+    for (int i = 0; i < 4; i++) {
+        const pkmn_move_t* Move = &battle->ally_active->moves[i];
+
+        if (!Move->move) {
+            printf("\t %i) INVALID MOVE\n", i+1);
+            continue;
+        }
+        printf(
+            "\t %i) %s %i/%i\n", i+1,
+            Move->move->name, Move->pp_left, Move->move->base_pp
+        );
+    }
+
+    int c = getc(stdin);
+
+    switch(c) {
+        case '1':
+        case '2':
+        case '3':
+        case '4': {
+            return PKMN_ACTION_MOVE(battle->ally_active, battle->opp_active, c - '1');
+        }
+
+        default: {
+            printf("Invalid option!\n");
+            return _pkmn_print_options(battle);
+        }
+    }
+
+}
+
+pkmn_battle_action_t _pkmn_ai_wild(const pkmn_battle_t* battle) {
+    uint8_t idx = pkmn_rand_u8() % 4;
+    PKMN_RUNTIME_ASSERT(battle->opp_active->moves[idx].move != NULL, "move is null!");
+
+    return PKMN_ACTION_MOVE(battle->opp_active, battle->ally_active, idx);
+}
+
 void pkmn_cli_battle(struct pkmn_battle_t* battle) {
     printf("Battle began!\n");    
 
     printf("Player1 sent out '%s'\n", battle->ally_active->species->name);
     printf("Player2 sent out '%s'\n", battle->opp_active->species->name);
-    pkmn_print_field(battle);
+    
+    _pkmn_print_field(battle);
 
-    char c = getc(stdin);
-    printf("enterd: %c\n", c);
+    pkmn_battle_action_t player_action = _pkmn_print_options(battle);
+    pkmn_battle_action_t opponent_action = _pkmn_ai_wild(battle);
+
+    pkmn_battle_turn_data_t data = pkmn_battle_turn(
+        battle,
+        player_action,
+        opponent_action
+    );
+
+    _pkmn_print_action(&player_action);
+    _pkmn_print_action(&opponent_action);
+
+
 }
 

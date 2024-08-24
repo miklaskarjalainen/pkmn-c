@@ -10,6 +10,33 @@ static bool _pkmn_action_is_priority(pkmn_battle_action_t action) {
 	return action.type != ACTION_MOVE;
 }
 
+static void _pkmn_sort_actions(pkmn_battle_action_t* action, size_t length) {
+	for (size_t i = 0; i < length-1; i++) {
+		for (size_t j = 0; j < length-i-1; j++) {
+			bool go_later = false;
+
+			if (action[j].priority > action[j+1].priority) {
+				go_later = true;
+			}
+			if (action[j].priority == action[j+1].priority) {
+				if (action[j].speed > action[j+1].speed) {
+					go_later = true;
+				}
+				else if (action[j].speed == action[j+1].speed) {
+					go_later = pkmn_randf() >= 0.5;
+				}
+			}
+
+			// swap
+			if (go_later) {
+				pkmn_battle_action_t hold = action[j];
+				action[j] = action[j+1];
+				action[j+1] = hold;
+			}
+		}
+	}
+}
+
 pkmn_battle_t pkmn_battle_init(pkmn_party_t* ally_party, pkmn_party_t* opponent_party) {
 	return (pkmn_battle_t){
 		.field = { 0 },
@@ -23,65 +50,52 @@ pkmn_battle_t pkmn_battle_init(pkmn_party_t* ally_party, pkmn_party_t* opponent_
 }
 
 void pkmn_battle_switch(
-	pkmn_battler_t** user,
-	pkmn_party_t* party,
-	uint8_t party_index
+	pkmn_battle_t* battle,
+	pkmn_battle_switch_action_t action
 ) {
-	*user = &party->battlers[party_index];
+	*action.source_pkmn = action.target_pkmn;
 }
 
 void pkmn_battle_move(
 	pkmn_battle_t* battle,
-	pkmn_battler_t* attacker,
-    pkmn_battler_t* defender,
-	uint8_t move_index
+	pkmn_battle_move_action_t action
 ) {
-	pkmn_move_t* move = &attacker->moves[move_index];
-
-	PKMN_DEBUG_ASSERT(attacker, "'attacker' IS NULL");
-	PKMN_DEBUG_ASSERT(defender, "'defender' IS NULL");
-	PKMN_DEBUG_ASSERT(move->move, "MOVE IS NULL");
-	PKMN_DEBUG_ASSERT(move->pp_left, "MOVE DOESN'T HAVE PP");
-
-	pkmn_damage_t dmg = pkmn_calculate_damage(
-		attacker,
-		defender,
-		move->move
-	);
-	
-	if (dmg.damage_done > defender->current_hp) {
-		defender->current_hp = 0;
-	}
-	else {
-		defender->current_hp -= dmg.damage_done;
-	}
-
-    battle->turn_data.details[battle->turn_data._current_half_turn].user = attacker;
-    battle->turn_data.details[battle->turn_data._current_half_turn].target = defender;
-    battle->turn_data.details[battle->turn_data._current_half_turn].damage = dmg;
-}
-
-
-void pkmn_battle_do_action(
-	pkmn_battle_t* battle,
-	pkmn_battle_action_t action,
-	struct pkmn_battler_t** user,
-	struct pkmn_party_t* user_party,
-	struct pkmn_battler_t* target
-) {
-	if ((*user)->current_hp == 0) {
+	if (action.source_pkmn->current_hp == 0) {
 		return;
 	}
 
-	battle->turn_data.details[battle->turn_data._current_half_turn].action = action;
+	PKMN_DEBUG_ASSERT(action.source_pkmn, "'attacker' IS NULL");
+	PKMN_DEBUG_ASSERT(action.target_pkmn, "'defender' IS NULL");
+	PKMN_DEBUG_ASSERT(action.move, "MOVE IS NULL");
+	PKMN_DEBUG_ASSERT(action.move->pp_left, "MOVE DOESN'T HAVE PP");
 
+	action.move->pp_left--;
+
+	pkmn_damage_t dmg = pkmn_calculate_damage(
+		action.source_pkmn,
+		action.target_pkmn,
+		action.move->move
+	);
+	
+	if (dmg.damage_done > action.target_pkmn->current_hp) {
+		action.target_pkmn->current_hp = 0;
+	}
+	else {
+		action.target_pkmn->current_hp -= dmg.damage_done;
+	}
+}
+
+void pkmn_battle_do_action(
+	pkmn_battle_t* battle,
+	pkmn_battle_action_t action
+) {
 	switch (action.type) {
 		case ACTION_MOVE: {
-			pkmn_battle_move(battle, *user, target, action.move_index);
+			pkmn_battle_move(battle, action.move_action);
 			break;
 		}
 		case ACTION_SWITCH: {
-			pkmn_battle_switch(user, user_party, action.switch_index);
+			pkmn_battle_switch(battle, action.switch_action);
 			break;
 		}
 
@@ -91,7 +105,6 @@ void pkmn_battle_do_action(
 		}
 	}
 
-	battle->turn_data._current_half_turn++;
 }
 
 pkmn_battle_turn_data_t pkmn_battle_turn(
@@ -102,15 +115,13 @@ pkmn_battle_turn_data_t pkmn_battle_turn(
 	// Init turn data
 	battle->turn_data = (pkmn_battle_turn_data_t){ 0 };
 	battle->turn_data.seed = pkmn_rand_get_seed();
-    battle->turn_data._current_half_turn = 0;
 
-	// TODO: paralysis
-	const pkmn_stats_t AllyStats = pkmn_battler_get_stats(battle->ally_active);
-	const pkmn_stats_t OppStats = pkmn_battler_get_stats(battle->opp_active);
-	const bool AllyIsFaster = 
-		AllyStats.speed == OppStats.speed ?
-			pkmn_randf() > 0.5 : AllyStats.speed > OppStats.speed;
 
+	pkmn_battle_action_t actions[] = {ally_action, opp_action};
+	_pkmn_sort_actions(actions,PKMN_ARRAY_SIZE(actions));
+
+
+	/*
 	// Ally goes first 
 	if (
 		(AllyIsFaster && !_pkmn_action_is_priority(opp_action)) ||
@@ -131,6 +142,7 @@ pkmn_battle_turn_data_t pkmn_battle_turn(
 			battle, ally_action, &battle->ally_active, battle->ally_party,battle->opp_active
 		);
 	}
+	*/
 
 	return battle->turn_data;
 }

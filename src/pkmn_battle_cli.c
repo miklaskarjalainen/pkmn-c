@@ -95,6 +95,7 @@ static void _pkmn_print_action(const pkmn_battle_action_t* action) {
 pkmn_battle_action_t _pkmn_print_options(const pkmn_battle_t* battle) {
     printf("choose one of the the following:\n");
 
+    printf("Move: \n");
     for (int i = 0; i < 4; i++) {
         const pkmn_move_t* Move = &battle->ally_active->moves[i];
 
@@ -108,6 +109,36 @@ pkmn_battle_action_t _pkmn_print_options(const pkmn_battle_t* battle) {
         );
     }
 
+    printf("Switch: \n");
+
+    pkmn_battler_t* other_party[5] = { 0 };
+
+    bool passed_current = false;
+    for (int i = 0; i < 6; i++) {
+        const pkmn_battler_t* Battler = &battle->ally_party->battlers[i];
+        
+        if (Battler == battle->ally_active) {
+            passed_current = true;
+            continue;
+        }
+
+        const int IDX = passed_current ? i + 4 : i + 5;
+        if (!Battler->species) {
+            printf("\t %i) NO-POKEMON\n", IDX);
+            continue;
+        }
+
+        other_party[passed_current ? i - 1 : i] = Battler;
+
+        pkmn_stats_t stats = pkmn_battler_get_stats(Battler);
+        printf(
+            "\t %i) %s %u/%u\n", IDX,
+            Battler->species->name,
+            Battler->current_hp,
+            stats.hp
+        );
+    }
+
     int c = getc(stdin);
 
     switch(c) {
@@ -116,6 +147,14 @@ pkmn_battle_action_t _pkmn_print_options(const pkmn_battle_t* battle) {
         case '3':
         case '4': {
             return PKMN_ACTION_MOVE(battle->ally_active, battle->opp_active, c - '1');
+        }
+
+        case '5':
+        case '6':
+        case '7':
+        case '8':
+        case '9': {
+            return PKMN_ACTION_SWITCH(battle->ally_active, other_party[c - '5']);
         }
 
         default: {
@@ -144,15 +183,40 @@ void pkmn_cli_battle(struct pkmn_battle_t* battle) {
     pkmn_battle_action_t player_action = _pkmn_print_options(battle);
     pkmn_battle_action_t opponent_action = _pkmn_ai_wild(battle);
 
-    pkmn_battle_turn_data_t data = pkmn_battle_turn(
+    pkmn_battle_turn(
         battle,
         player_action,
         opponent_action
     );
+    
+    pkmn_battle_turn_data_t data = battle->turn_data;
+    
+    pkmn_battle_event_t* ev_ptr = &data.events[0];
+    while (ev_ptr->type != TURN_EVENT_NIL) {
+        switch (ev_ptr->type) {
+            case TURN_EVENT_DMG_STRUGGLE: {
+                printf("%s uses struggle!\n", ev_ptr->from->species->name);
+                break;
+            }
+            case TURN_EVENT_DMG_MOVE: {
+                printf("%s uses %s! which did damage: %u\n", ev_ptr->from->species->name, ev_ptr->move->move->name, ev_ptr->damage.damage_done);
+                break;
+            }
+            case TURN_EVENT_SWITCH: {
+                printf("%s switcehd to %s\n", ev_ptr->from->species->name, ev_ptr->to->species->name);
+                break;
+            }
+
+            default: {
+                PKMN_PANIC("unhandled type %u", ev_ptr->type);
+            }
+        }
+        ev_ptr++;
+    }
 
     _pkmn_print_action(&player_action);
     _pkmn_print_action(&opponent_action);
-
+    _pkmn_print_field(battle);
 
 }
 

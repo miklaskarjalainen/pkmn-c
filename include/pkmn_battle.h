@@ -45,13 +45,13 @@ typedef struct pkmn_battle_action_t {
 	};
 } pkmn_battle_action_t;
 
-#define PKMN_ACTION_SWITCH(from, to) 				\
+#define PKMN_ACTION_SWITCH(active, to) 				\
 (pkmn_battle_action_t) {							\
 	.type = ACTION_SWITCH, 							\
 	.priority = 1,									\
-	.speed = pkmn_battler_get_stats(from).speed,	\
+	.speed = pkmn_battler_get_stats(active).speed,	\
 	.switch_action = {								\
-		.source_pkmn = &from,						\
+		.source_pkmn = &active,						\
 		.target_pkmn = to,							\
 	}												\
 }
@@ -68,6 +68,7 @@ typedef struct pkmn_battle_action_t {
 	}												\
 }
 
+/*
 typedef enum pkmn_battle_damage_cause_type {
 	DAMAGE_CAUSE_NIL = 0,
 	DAMAGE_CAUSE_MOVE,
@@ -78,16 +79,35 @@ typedef enum pkmn_battle_damage_cause_type {
 	DAMAGE_CAUSE_CURSE,
 	DAMAGE_CAUSE_COUNT,
 } pkmn_battle_damage_cause_type;
+*/
 
-typedef struct pkmn_damage_cause_t {
-	pkmn_battle_damage_cause_type type;
+typedef enum pkmn_battle_event_type {
+	TURN_EVENT_NIL = 0,
+	TURN_EVENT_SWITCH,
+
+	TURN_EVENT_DMG_MOVE,
+	TURN_EVENT_DMG_STRUGGLE,
+	TURN_EVENT_DMG_WEATHER,
+	TURN_EVENT_DMG_CONFUSION,
+	TURN_EVENT_DMG_STATUS,
+	TURN_EVENT_DMG_CURSE,
+	TURN_EVENT_COUNT,
+} pkmn_battle_event_type;
+
+typedef struct pkmn_battle_event_t {
+	pkmn_battle_event_type type;
+
+	struct pkmn_battler_t* from;
+	struct pkmn_battler_t* to;
 	pkmn_damage_t damage;
-} pkmn_damage_cause_t;
+	struct pkmn_move_t* move;
+
+} pkmn_battle_event_t;
 
 typedef struct pkmn_battle_turn_data_t {
 	uint32_t seed;
 	pkmn_battle_action_t actions[2];
-	struct pkmn_damage_cause_t turn_damages[32];
+	pkmn_battle_event_t events[32];
 } pkmn_battle_turn_data_t;
 
 /*
@@ -103,7 +123,7 @@ typedef struct pkmn_battle_t {
 	struct pkmn_party_t *ally_party, *opp_party;
 	struct pkmn_battler_t *ally_active, *opp_active;
 
-	// pkmn_battle_turn_data_t turn_data;
+	pkmn_battle_turn_data_t turn_data;
 } pkmn_battle_t;
 
 // https://bulbapedia.bulbagarden.net/wiki/Damage
@@ -119,12 +139,23 @@ pkmn_battle_t pkmn_battle_init(
     struct pkmn_party_t* opponent_party
 );
 
-pkmn_battle_turn_data_t pkmn_battle_turn(
+/*
+	returns true if a pokemon was fainted in the middle of the turn.
+	If so then "pkmn_battle_switch_after_faint" has to be called.
+*/
+bool pkmn_battle_turn(
     pkmn_battle_t* battle,
     pkmn_battle_action_t ally_action,
     pkmn_battle_action_t opp_action
 );
 
+/* called if pkmn_battle_turn returned true */
+void pkmn_battle_switch_after_faint(
+	pkmn_battle_t* battle,
+	pkmn_battle_action_t ally_action
+);
+
+/*
 void pkmn_battle_do_action(
     pkmn_battle_t* battle,
     pkmn_battle_action_t action
@@ -139,6 +170,7 @@ void pkmn_battle_move(
     pkmn_battle_t* battle,
 	pkmn_battle_move_action_t action
 );
+*/
 
 // How many times the ball shakes after trying to capture.
 // 4 Shakes means a capture

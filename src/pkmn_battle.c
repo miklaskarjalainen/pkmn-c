@@ -6,6 +6,11 @@
 #include "pkmn_stats.h"
 #include "pkmn_math.h"
 
+#define _BATTLE_ADD_EVENT(battle, ev_ptr, ev) (battle)->turn_data.events[(*ev_ptr)++] = ev
+#define _MOVE_EVENT(move_ptr, from_ptr, to_ptr, dmg) (pkmn_battle_event_t) {.type = TURN_EVENT_DMG_MOVE, .from = from_ptr, .to = to_ptr, .damage = dmg, .move = move_ptr}
+#define _DAMAGE_EVENT(dmg_cause, from_ptr, to_ptr, dmg) (pkmn_battle_event_t) {.type = dmg_cause, .from = from_ptr, .to = to_ptr, .damage = dmg, .move = NULL }
+#define _SWITCH_EVENT(from_ptr, to_ptr) (pkmn_battle_event_t) {.type = TURN_EVENT_SWITCH, .from = from_ptr, .to = to_ptr }
+
 static bool _pkmn_action_is_priority(pkmn_battle_action_t action) {
 	return action.type != ACTION_MOVE;
 }
@@ -13,26 +18,25 @@ static bool _pkmn_action_is_priority(pkmn_battle_action_t action) {
 static void _pkmn_sort_actions(pkmn_battle_action_t* action, size_t length) {
 	for (size_t i = 0; i < length-1; i++) {
 		for (size_t j = 0; j < length-i-1; j++) {
-			bool go_later = false;
-
+			// swap occurs when J+1 has priority
 			if (action[j].priority > action[j+1].priority) {
-				go_later = true;
+				goto swap;
 			}
-			if (action[j].priority == action[j+1].priority) {
-				if (action[j].speed > action[j+1].speed) {
-					go_later = true;
+			else if (action[j].priority == action[j+1].priority) {
+				if (action[j].speed < action[j+1].speed) {
+					goto swap;
 				}
-				else if (action[j].speed == action[j+1].speed) {
-					go_later = pkmn_randf() >= 0.5;
+				// speed tie, swap ~50% of the time
+				else if (action[j].speed == action[j+1].speed && pkmn_randf() >= 0.5) {
+					goto swap;
 				}
 			}
+			continue;
 
-			// swap
-			if (go_later) {
-				pkmn_battle_action_t hold = action[j];
-				action[j] = action[j+1];
-				action[j+1] = hold;
-			}
+			swap:;
+			pkmn_battle_action_t hold = action[j];
+			action[j] = action[j+1];
+			action[j+1] = hold;
 		}
 	}
 }
@@ -49,16 +53,21 @@ pkmn_battle_t pkmn_battle_init(pkmn_party_t* ally_party, pkmn_party_t* opponent_
 	};
 }
 
-void pkmn_battle_switch(
+static void _pkmn_battle_switch(
 	pkmn_battle_t* battle,
-	pkmn_battle_switch_action_t action
+	pkmn_battle_switch_action_t action,
+	uint8_t* event_count
 ) {
+	_BATTLE_ADD_EVENT(battle, event_count, 
+		_SWITCH_EVENT(*action.source_pkmn, action.target_pkmn)
+	);
 	*action.source_pkmn = action.target_pkmn;
 }
 
-void pkmn_battle_move(
+static void _pkmn_battle_move(
 	pkmn_battle_t* battle,
-	pkmn_battle_move_action_t action
+	pkmn_battle_move_action_t action,
+	uint8_t* event_count
 ) {
 	if (action.source_pkmn->current_hp == 0) {
 		return;
@@ -76,6 +85,9 @@ void pkmn_battle_move(
 		action.target_pkmn,
 		action.move->move
 	);
+	_BATTLE_ADD_EVENT(battle, event_count,
+		_MOVE_EVENT(action.move, action.source_pkmn, action.target_pkmn, dmg)
+	);
 	
 	if (dmg.damage_done > action.target_pkmn->current_hp) {
 		action.target_pkmn->current_hp = 0;
@@ -85,17 +97,20 @@ void pkmn_battle_move(
 	}
 }
 
-void pkmn_battle_do_action(
+static void _pkmn_battle_do_action(
 	pkmn_battle_t* battle,
-	pkmn_battle_action_t action
+	pkmn_battle_action_t action,
+	uint8_t* event_count
 ) {
+	PKMN_RUNTIME_ASSERT(*event_count <= PKMN_ARRAY_SIZE(battle->turn_data.events), "turn_data.events overflowed");
+
 	switch (action.type) {
 		case ACTION_MOVE: {
-			pkmn_battle_move(battle, action.move_action);
+			_pkmn_battle_move(battle, action.move_action, event_count);
 			break;
 		}
 		case ACTION_SWITCH: {
-			pkmn_battle_switch(battle, action.switch_action);
+			_pkmn_battle_switch(battle, action.switch_action, event_count);
 			break;
 		}
 
@@ -107,26 +122,26 @@ void pkmn_battle_do_action(
 
 }
 
-pkmn_battle_turn_data_t pkmn_battle_turn(
+bool pkmn_battle_turn(
     pkmn_battle_t* battle,
     pkmn_battle_action_t ally_action, 
     pkmn_battle_action_t opp_action
 ) {
 	// Init turn data
-	pkmn_battle_turn_data_t turn_data = (pkmn_battle_turn_data_t){ 0 };
-	turn_data.seed = pkmn_rand_get_seed();
+	battle->turn_data = (pkmn_battle_turn_data_t){ 0 };
+	battle->turn_data.seed = pkmn_rand_get_seed();
 
-	pkmn_battle_action_t actions[] = {ally_action, opp_action};
-	_pkmn_sort_actions(actions,PKMN_ARRAY_SIZE(actions));
+	battle->turn_data.actions[0] = ally_action;
+	battle->turn_data.actions[1] = opp_action;
 
-	for (size_t action_idx = 0; action_idx < PKMN_ARRAY_SIZE(actions); action_idx++) {
-		pkmn_battle_do_action(battle, actions[action_idx]);
-		
-		// save to performed actions
-		turn_data.actions[action_idx] = actions[action_idx];
+	_pkmn_sort_actions(battle->turn_data.actions,PKMN_ARRAY_SIZE(battle->turn_data.actions));
+
+	uint8_t event_count = 0;
+	for (size_t action_idx = 0; action_idx < PKMN_ARRAY_SIZE(battle->turn_data.actions); action_idx++) {
+		_pkmn_battle_do_action(battle, battle->turn_data.actions[action_idx], &event_count);
 	}
 
-	return turn_data;
+	return false;
 }
 
 pkmn_damage_t pkmn_calculate_damage(

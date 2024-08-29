@@ -52,25 +52,27 @@ static void _pkmn_print_field(const pkmn_battle_t* battle) {
     pkmn_stats_t ally_stats = pkmn_battler_get_stats(battle->ally_active);
     pkmn_stats_t opp_stats = pkmn_battler_get_stats(battle->opp_active);
 
-    printf("Opp: '%s' lv.%u hp: %u/%u\n", 
+    printf("Opp: '%s' lv.%u hp: %u/%u spd: %u\n", 
         battle->opp_active->species->name, 
         battle->opp_active->level,
         battle->opp_active->current_hp,
-        opp_stats.hp
+        opp_stats.hp,
+        opp_stats.speed
     );
-    printf("Ally: '%s' lv.%u hp: %u/%u\n", 
+    printf("Ally: '%s' lv.%u hp: %u/%u spd: %u\n", 
         battle->ally_active->species->name, 
         battle->ally_active->level,
         battle->ally_active->current_hp,
-        ally_stats.hp
+        ally_stats.hp,
+        ally_stats.speed
     );
 
 }
 
 static void _pkmn_print_action_move(const pkmn_battle_move_action_t* action) {
     printf("\t\t.move = '%s'\n", action->move->move->name);
-    printf("\t\t.source_pkmn = '%s'\n", action->source_pkmn->species->name);
-    printf("\t\t.target_pkmn = '%s'\n", action->target_pkmn->species->name);
+    printf("\t\t.source_pkmn = '%s'\n", (*action->source_pkmn)->species->name);
+    printf("\t\t.target_pkmn = '%s'\n", (*action->target_pkmn)->species->name);
 }
 
 static void _pkmn_print_action_switch(const pkmn_battle_switch_action_t* action) {
@@ -111,7 +113,7 @@ pkmn_battle_action_t _pkmn_print_options(const pkmn_battle_t* battle) {
 
     printf("Switch: \n");
 
-    pkmn_battler_t* other_party[5] = { 0 };
+    const pkmn_battler_t* other_party[5] = { 0 };
 
     bool passed_current = false;
     for (int i = 0; i < 6; i++) {
@@ -195,15 +197,26 @@ void pkmn_cli_battle(struct pkmn_battle_t* battle) {
     while (ev_ptr->type != TURN_EVENT_NIL) {
         switch (ev_ptr->type) {
             case TURN_EVENT_DMG_STRUGGLE: {
-                printf("%s uses struggle!\n", ev_ptr->from->species->name);
+                printf(
+                    "%s uses struggle!\n", (*ev_ptr->move.source_pkmn)->species->name
+                );
                 break;
             }
             case TURN_EVENT_DMG_MOVE: {
-                printf("%s uses %s! which did damage: %u\n", ev_ptr->from->species->name, ev_ptr->move->move->name, ev_ptr->damage.damage_done);
+                printf(
+                    "%s uses %s! which did damage: %u\n", 
+                    (*ev_ptr->move.source_pkmn)->species->name,
+                    ev_ptr->move.move->move->name,
+                    ev_ptr->damage.damage_done
+                );
                 break;
             }
             case TURN_EVENT_SWITCH: {
-                printf("%s switcehd to %s\n", ev_ptr->from->species->name, ev_ptr->to->species->name);
+                printf(
+                    "%s switcehd to %s\n",
+                    (*ev_ptr->switched.source_pkmn)->species->name,
+                    ev_ptr->switched.target_pkmn->species->name
+                );
                 break;
             }
 

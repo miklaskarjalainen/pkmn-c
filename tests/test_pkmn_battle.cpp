@@ -49,10 +49,10 @@ TEST_CASE("Battle: Fainting", "[pkmn]") {
 
     // 
     REQUIRE(turn.actions[0].type == ACTION_MOVE);
-    REQUIRE(turn.actions[0].move_action.source_pkmn == &party.battlers[0]);
+    REQUIRE(*turn.actions[0].move_action.source_pkmn == &party.battlers[0]);
 
     // Second move didn't happen, because the pokemon got fainted.
-    REQUIRE(turn.actions[0].move_action.target_pkmn->current_hp == 0);
+    REQUIRE((*turn.actions[0].move_action.target_pkmn)->current_hp == 0);
     REQUIRE(turn.actions[1].type == ACTION_NULL);
 }
 
@@ -71,7 +71,7 @@ TEST_CASE("Battle: Speed priority", "[pkmn]") {
         pkmn_battle_turn_data_t turn = battle.turn_data;
 
         REQUIRE(turn.actions[0].type == ACTION_MOVE);
-        REQUIRE(turn.actions[0].move_action.source_pkmn == &party.battlers[0]);
+        REQUIRE(*turn.actions[0].move_action.source_pkmn == &party.battlers[0]);
     }
 
     {
@@ -86,7 +86,7 @@ TEST_CASE("Battle: Speed priority", "[pkmn]") {
         pkmn_battle_turn_data_t turn = battle.turn_data;
 
         REQUIRE(turn.actions[0].type == ACTION_MOVE);
-        REQUIRE(turn.actions[0].move_action.source_pkmn == &party.battlers[0]);
+        REQUIRE(*turn.actions[0].move_action.source_pkmn == &party.battlers[0]);
     }
 }
 

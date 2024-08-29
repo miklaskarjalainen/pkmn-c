@@ -27,7 +27,7 @@ typedef enum pkmn_battle_action_type {
 } pkmn_battle_action_type;
 
 typedef struct pkmn_battle_move_action_t {
-	struct pkmn_battler_t *source_pkmn, *target_pkmn;
+	struct pkmn_battler_t **source_pkmn, **target_pkmn;
 	struct pkmn_move_t* move;
 } pkmn_battle_move_action_t;
 
@@ -62,8 +62,8 @@ typedef struct pkmn_battle_action_t {
 	.priority = 2,									\
 	.speed = pkmn_battler_get_stats(src).speed,		\
 	.move_action = {								\
-		.source_pkmn = src,							\
-		.target_pkmn = target,						\
+		.source_pkmn = &src,						\
+		.target_pkmn = &target,						\
 		.move = &src->moves[move_idx],				\
 	}												\
 }
@@ -96,12 +96,11 @@ typedef enum pkmn_battle_event_type {
 
 typedef struct pkmn_battle_event_t {
 	pkmn_battle_event_type type;
-
-	struct pkmn_battler_t* from;
-	struct pkmn_battler_t* to;
+	union {
+		pkmn_battle_move_action_t move;
+		pkmn_battle_switch_action_t switched;
+	};
 	pkmn_damage_t damage;
-	struct pkmn_move_t* move;
-
 } pkmn_battle_event_t;
 
 typedef struct pkmn_battle_turn_data_t {

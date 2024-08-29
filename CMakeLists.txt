@@ -7,6 +7,7 @@ set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_EXTENSIONS off)
 set(
     SOURCE_FILES
+    include/pkmn_coroutine.h
     include/pkmn_battle.h src/pkmn_battle.c
     include/pkmn_battle_cli.h src/pkmn_battle_cli.c
     include/pkmn_battler.h src/pkmn_battler.c
@@ -53,6 +54,8 @@ if (BUILD_TESTS)
     enable_testing()
     add_test(NAME Tests COMMAND tests)
 endif()
+
+add_compile_options(-pedantic)
 
 add_executable(${PROJECT_NAME} src/main.c ${SOURCE_FILES})
 target_include_directories(${PROJECT_NAME} PRIVATE ${INCLUDE_DIRS})

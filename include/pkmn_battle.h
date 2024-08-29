@@ -26,13 +26,20 @@ typedef enum pkmn_battle_action_type {
 	ACTION_SWITCH
 } pkmn_battle_action_type;
 
+/*
+typedef enum pkmn_battle_target {
+	TARGET_SELF 	= 0,
+	TARGET_OPPONENT = 1,
+} pkmn_battle_target;
+*/
+
 typedef struct pkmn_battle_move_action_t {
-	struct pkmn_battler_t **source_pkmn, **target_pkmn;
-	struct pkmn_move_t* move;
+	uint8_t source_pkmn, target_pkmn, move_idx;
 } pkmn_battle_move_action_t;
 
 typedef struct pkmn_battle_switch_action_t {
-	struct pkmn_battler_t **source_pkmn, *target_pkmn;
+	uint8_t source_pkmn;
+	struct pkmn_battler_t* target_pkmn;
 } pkmn_battle_switch_action_t;
 
 typedef struct pkmn_battle_action_t {
@@ -45,41 +52,32 @@ typedef struct pkmn_battle_action_t {
 	};
 } pkmn_battle_action_t;
 
-#define PKMN_ACTION_SWITCH(active, to) 				\
+#define PKMN_ACTION_SWITCH(battle, active_idx, target_ptr) \
 (pkmn_battle_action_t) {							\
 	.type = ACTION_SWITCH, 							\
 	.priority = 1,									\
-	.speed = pkmn_battler_get_stats(active).speed,	\
+	.speed = pkmn_battler_get_stats(				\
+		(battle)->active_pkmn[active_idx]			\
+	).speed,										\
 	.switch_action = {								\
-		.source_pkmn = &active,						\
-		.target_pkmn = to,							\
+		.source_pkmn = active_idx,					\
+		.target_pkmn = target_ptr,					\
 	}												\
 }
 
-#define PKMN_ACTION_MOVE(src, target, move_idx)		\
+#define PKMN_ACTION_MOVE(battle, active_idx, target_idx, move_idx_)	\
 (pkmn_battle_action_t) {							\
 	.type = ACTION_MOVE, 							\
 	.priority = 2,									\
-	.speed = pkmn_battler_get_stats(src).speed,		\
+	.speed = pkmn_battler_get_stats(				\
+		(battle)->active_pkmn[active_idx]			\
+	).speed,										\
 	.move_action = {								\
-		.source_pkmn = &src,						\
-		.target_pkmn = &target,						\
-		.move = &src->moves[move_idx],				\
+		.source_pkmn = active_idx,					\
+		.target_pkmn = target_idx,					\
+		.move_idx = move_idx_,						\
 	}												\
 }
-
-/*
-typedef enum pkmn_battle_damage_cause_type {
-	DAMAGE_CAUSE_NIL = 0,
-	DAMAGE_CAUSE_MOVE,
-	DAMAGE_CAUSE_WEATHER,
-
-	DAMAGE_CAUSE_CONFUSION,
-	DAMAGE_CAUSE_STATUS,
-	DAMAGE_CAUSE_CURSE,
-	DAMAGE_CAUSE_COUNT,
-} pkmn_battle_damage_cause_type;
-*/
 
 typedef enum pkmn_battle_event_type {
 	TURN_EVENT_NIL = 0,
@@ -119,8 +117,9 @@ typedef struct pkmn_field_t {
 
 typedef struct pkmn_battle_t {
 	pkmn_field_t field;
-	struct pkmn_party_t *ally_party, *opp_party;
-	struct pkmn_battler_t *ally_active, *opp_active;
+
+	struct pkmn_party_t* players[2];
+	struct pkmn_battler_t* active_pkmn[2];
 
 	pkmn_battle_turn_data_t turn_data;
 } pkmn_battle_t;

@@ -1,19 +1,20 @@
 #include "pkmn_battle.h"
 #include "pkmn_battler.h"
 #include "pkmn_config.h"
+#include "pkmn_move.h"
 #include "pkmn_rand.h"
 #include "pkmn_species.h"
 #include "pkmn_stats.h"
 #include "pkmn_math.h"
 
 #define _BATTLE_ADD_EVENT(battle, ev_ptr, ev) (battle)->turn_data.events[(*ev_ptr)++] = ev
-#define _MOVE_EVENT(move_ptr, from_ptr, to_ptr, dmg) 	\
+#define _MOVE_EVENT(attacker_idx, defender_idx, move_idx_, dmg) 	\
 	(pkmn_battle_event_t) {								\
 		.type = TURN_EVENT_DMG_MOVE,					\
 		.move = { 										\
-			.source_pkmn = from_ptr,					\
-			.target_pkmn = to_ptr,						\
-			.move = move_ptr							\
+			.source_pkmn = attacker_idx,				\
+			.target_pkmn = defender_idx,				\
+			.move_idx = move_idx_						\
 		}, 												\
 		.damage = dmg									\
 	}
@@ -29,11 +30,11 @@
 		.damage = dmg,									\
 	}
 
-#define _SWITCH_EVENT(from_ptr, to_ptr) 	\
+#define _SWITCH_EVENT(from_idx, to_ptr) 	\
 	(pkmn_battle_event_t) {					\
 		.type = TURN_EVENT_SWITCH,			\
 		.switched = {						\
-			.source_pkmn = from_ptr, 		\
+			.source_pkmn = from_idx, 		\
 			.target_pkmn = to_ptr			\
 		}									\
 	}
@@ -72,11 +73,9 @@ pkmn_battle_t pkmn_battle_init(pkmn_party_t* ally_party, pkmn_party_t* opponent_
 	return (pkmn_battle_t){
 		.field = { 0 },
 
-		.ally_party = ally_party,
-		.opp_party = opponent_party,
+		.players = { ally_party, opponent_party },
 
-		.ally_active = &ally_party->battlers[0],
-		.opp_active = &opponent_party->battlers[0],
+		.active_pkmn = { &ally_party->battlers[0], &opponent_party->battlers[0] },
 	};
 }
 
@@ -88,7 +87,9 @@ static void _pkmn_battle_switch(
 	_BATTLE_ADD_EVENT(battle, event_count, 
 		_SWITCH_EVENT(action.source_pkmn, action.target_pkmn) // MAKE IT NORMAL PTR LMAO
 	);
-	*action.source_pkmn = action.target_pkmn;
+
+	uint8_t field = action.source_pkmn;
+	battle->active_pkmn[field] = action.target_pkmn;
 }
 
 static void _pkmn_battle_move(
@@ -96,33 +97,36 @@ static void _pkmn_battle_move(
 	pkmn_battle_move_action_t action,
 	uint8_t* event_count
 ) {
-	if ((*action.source_pkmn)->current_hp == 0) {
+	PKMN_DEBUG_ASSERT(battle->active_pkmn[action.source_pkmn], "'attacker' IS NULL");
+	PKMN_DEBUG_ASSERT(battle->active_pkmn[action.target_pkmn], "'defender' IS NULL");
+	PKMN_DEBUG_ASSERT(battle->active_pkmn[action.source_pkmn]->moves[action.move_idx].move, "MOVE IS NULL");
+	PKMN_DEBUG_ASSERT(battle->active_pkmn[action.source_pkmn]->moves[action.move_idx].pp_left, "MOVE DOESN'T HAVE PP");
+
+	pkmn_battler_t* attacker = battle->active_pkmn[action.source_pkmn];
+
+	if (attacker->current_hp == 0) {
 		return;
 	}
 
-	PKMN_DEBUG_ASSERT(action.source_pkmn, "'attacker' IS NULL");
-	PKMN_DEBUG_ASSERT(*action.source_pkmn, "'attacker' IS NULL");
-	PKMN_DEBUG_ASSERT(action.target_pkmn, "'defender' IS NULL");
-	PKMN_DEBUG_ASSERT(*action.target_pkmn, "'defender' IS NULL");
-	PKMN_DEBUG_ASSERT(action.move, "MOVE IS NULL");
-	PKMN_DEBUG_ASSERT(action.move->pp_left, "MOVE DOESN'T HAVE PP");
-
-	action.move->pp_left--;
+	pkmn_battler_t* defender = battle->active_pkmn[action.target_pkmn];
+	pkmn_move_t* move = &battle->active_pkmn[action.source_pkmn]->moves[action.move_idx];
+	move->pp_left--;
 
 	pkmn_damage_t dmg = pkmn_calculate_damage(
-		*action.source_pkmn,
-		*action.target_pkmn,
-		action.move->move
+		attacker,
+		defender,
+		move->move
 	);
+
 	_BATTLE_ADD_EVENT(battle, event_count,
-		_MOVE_EVENT(action.move, action.source_pkmn, action.target_pkmn, dmg)
+		_MOVE_EVENT(action.source_pkmn, action.target_pkmn, action.move_idx, dmg)
 	);
 	
-	if (dmg.damage_done > (*action.target_pkmn)->current_hp) {
-		(*action.target_pkmn)->current_hp = 0;
+	if (dmg.damage_done > defender->current_hp) {
+		defender->current_hp = 0;
 	}
 	else {
-		(*action.target_pkmn)->current_hp -= dmg.damage_done;
+		defender->current_hp -= dmg.damage_done;
 	}
 }
 

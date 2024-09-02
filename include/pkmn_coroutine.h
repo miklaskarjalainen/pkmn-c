@@ -1,9 +1,9 @@
 #ifndef PKMN_COROUTINE_H
 #define PKMN_COROUTINE_H
 
-typedef struct coroutine_t {
+typedef struct pkmn_coroutine_t {
     int index;
-} coroutine_t;
+} pkmn_coroutine_t;
 
 #define COROUTINE_START(co) do { switch(co.index) { default:
 #define COROUTINE_CASE(co, name) case __LINE__: name: co.index = __LINE;

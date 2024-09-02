@@ -113,7 +113,7 @@ pkmn_battle_action_t _pkmn_print_options(const pkmn_battle_t* battle) {
 
     printf("Switch: \n");
 
-    const pkmn_battler_t* other_party[5] = { 0 };
+    uint8_t other_party[5] = { 255, 255, 255, 255, 255 };
 
     bool passed_current = false;
     for (int i = 0; i < 6; i++) {
@@ -130,7 +130,7 @@ pkmn_battle_action_t _pkmn_print_options(const pkmn_battle_t* battle) {
             continue;
         }
 
-        other_party[passed_current ? i - 1 : i] = Battler;
+        other_party[passed_current ? i - 1 : i] = i;
 
         pkmn_stats_t stats = pkmn_battler_get_stats(Battler);
         printf(
@@ -156,7 +156,7 @@ pkmn_battle_action_t _pkmn_print_options(const pkmn_battle_t* battle) {
         case '7':
         case '8':
         case '9': {
-            return PKMN_ACTION_SWITCH(battle, 0, other_party[c - '5']);
+            return PKMN_ACTION_SWITCH(battle, 0, 0, other_party[c - '5']);
         }
 
         default: {
@@ -185,7 +185,7 @@ void pkmn_cli_battle(struct pkmn_battle_t* battle) {
     pkmn_battle_action_t player_action = _pkmn_print_options(battle);
     pkmn_battle_action_t opponent_action = _pkmn_ai_wild(battle);
 
-    pkmn_battle_turn(
+    int fainted = pkmn_battle_turn(
         battle,
         player_action,
         opponent_action
@@ -197,32 +197,33 @@ void pkmn_cli_battle(struct pkmn_battle_t* battle) {
     while (ev_ptr->type != TURN_EVENT_NIL) {
         switch (ev_ptr->type) {
             case TURN_EVENT_DMG_STRUGGLE: {
-                /*
+                const pkmn_battler_t* attacker = battle->active_pkmn[ev_ptr->move.source_pkmn];
+
                 printf(
-                    "%s uses struggle!\n", (*ev_ptr->move.source_pkmn)->species->name
+                    "%s uses struggle!\n", attacker->species->name
                 );
-                */
                 break;
             }
             case TURN_EVENT_DMG_MOVE: {
-                /*
+                const pkmn_battler_t* attacker = battle->active_pkmn[ev_ptr->move.source_pkmn];
+
                 printf(
                     "%s uses %s! which did damage: %u\n", 
-                    (*ev_ptr->move.source_pkmn)->species->name,
-                    ev_ptr->move.move->move->name,
+                    attacker->species->name,
+                    attacker->moves[ev_ptr->move.move_idx].move->name,
                     ev_ptr->damage.damage_done
                 );
-                */
                 break;
             }
             case TURN_EVENT_SWITCH: {
-                /*
+                const pkmn_battler_t* source = battle->active_pkmn[ev_ptr->switched.field_idx];
+                const pkmn_battler_t* target = &battle->players[ev_ptr->switched.player_idx]->battlers[ev_ptr->switched.party_idx];
+
                 printf(
-                    "%s switcehd to %s\n",
-                    (*ev_ptr->switched.source_pkmn)->species->name,
-                    ev_ptr->switched.target_pkmn->species->name
+                    "%s switched to %s\n",
+                    source->species->name,
+                    target->species->name
                 );
-                */
                 break;
             }
 
@@ -233,8 +234,32 @@ void pkmn_cli_battle(struct pkmn_battle_t* battle) {
         ev_ptr++;
     }
 
-    _pkmn_print_action(&player_action);
-    _pkmn_print_action(&opponent_action);
+    printf("during battle pokemon '%s' fainted!\n", battle->active_pkmn[fainted-1]->species->name);
+
+    if (fainted) {
+        switch (fainted) {
+            case 1: {
+                
+                break;
+            }
+            case 2: {
+                pkmn_battle_switch_after_faint(battle,
+                    PKMN_ACTION_SWITCH(battle, PKMN_BATTLE_OPPONENT, PKMN_BATTLE_OPPONENT, 2)
+                );
+
+                break;
+            }
+
+            default: {
+                PKMN_PANIC("xd");
+            }
+        }
+
+
+    }
+
+    //_pkmn_print_action(&player_action);
+    //_pkmn_print_action(&opponent_action);
     _pkmn_print_field(battle);
 
 }

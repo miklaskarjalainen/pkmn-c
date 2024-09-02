@@ -4,6 +4,9 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#include "pkmn_coroutine.h"
+
+
 struct pkmn_battler_t;
 struct pkmn_party_t;
 struct pkmn_move_semantics_t;
@@ -38,8 +41,7 @@ typedef struct pkmn_battle_move_action_t {
 } pkmn_battle_move_action_t;
 
 typedef struct pkmn_battle_switch_action_t {
-	uint8_t source_pkmn;
-	struct pkmn_battler_t* target_pkmn;
+	uint8_t field_idx, player_idx, party_idx;
 } pkmn_battle_switch_action_t;
 
 typedef struct pkmn_battle_action_t {
@@ -52,25 +54,29 @@ typedef struct pkmn_battle_action_t {
 	};
 } pkmn_battle_action_t;
 
-#define PKMN_ACTION_SWITCH(battle, active_idx, target_ptr) \
+#define PKMN_BATTLE_ALLY 0
+#define PKMN_BATTLE_OPPONENT 1
+
+#define PKMN_ACTION_SWITCH(battle_ptr, active_idx_, player_idx_, party_idx_) \
 (pkmn_battle_action_t) {							\
 	.type = ACTION_SWITCH, 							\
 	.priority = 1,									\
 	.speed = pkmn_battler_get_stats(				\
-		(battle)->active_pkmn[active_idx]			\
+		(battle_ptr)->active_pkmn[active_idx_]		\
 	).speed,										\
 	.switch_action = {								\
-		.source_pkmn = active_idx,					\
-		.target_pkmn = target_ptr,					\
+		.field_idx = active_idx_,					\
+		.player_idx = player_idx_,					\
+		.party_idx = party_idx_,					\
 	}												\
 }
 
-#define PKMN_ACTION_MOVE(battle, active_idx, target_idx, move_idx_)	\
+#define PKMN_ACTION_MOVE(battle_ptr, active_idx, target_idx, move_idx_)	\
 (pkmn_battle_action_t) {							\
 	.type = ACTION_MOVE, 							\
 	.priority = 2,									\
 	.speed = pkmn_battler_get_stats(				\
-		(battle)->active_pkmn[active_idx]			\
+		(battle_ptr)->active_pkmn[active_idx]		\
 	).speed,										\
 	.move_action = {								\
 		.source_pkmn = active_idx,					\
@@ -122,6 +128,8 @@ typedef struct pkmn_battle_t {
 	struct pkmn_battler_t* active_pkmn[2];
 
 	pkmn_battle_turn_data_t turn_data;
+
+	int fainted_idx;
 } pkmn_battle_t;
 
 // https://bulbapedia.bulbagarden.net/wiki/Damage
@@ -141,14 +149,14 @@ pkmn_battle_t pkmn_battle_init(
 	returns true if a pokemon was fainted in the middle of the turn.
 	If so then "pkmn_battle_switch_after_faint" has to be called.
 */
-bool pkmn_battle_turn(
+int pkmn_battle_turn(
     pkmn_battle_t* battle,
     pkmn_battle_action_t ally_action,
     pkmn_battle_action_t opp_action
 );
 
 /* called if pkmn_battle_turn returned true */
-void pkmn_battle_switch_after_faint(
+bool pkmn_battle_switch_after_faint(
 	pkmn_battle_t* battle,
 	pkmn_battle_action_t ally_action
 );

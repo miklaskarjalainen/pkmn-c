@@ -1,5 +1,6 @@
 #include "pkmn_battle.h"
 #include "pkmn_battler.h"
+#include "pkmn_coroutine.h"
 #include "pkmn_config.h"
 #include "pkmn_move.h"
 #include "pkmn_rand.h"
@@ -30,12 +31,13 @@
 		.damage = dmg,									\
 	}
 
-#define _SWITCH_EVENT(from_idx, to_ptr) 	\
+#define _SWITCH_EVENT(from_idx_, player_idx_, to_idx_) 	\
 	(pkmn_battle_event_t) {					\
 		.type = TURN_EVENT_SWITCH,			\
 		.switched = {						\
-			.source_pkmn = from_idx, 		\
-			.target_pkmn = to_ptr			\
+			.field_idx = from_idx_, 		\
+			.player_idx = player_idx_, 		\
+			.party_idx = to_idx_, 			\
 		}									\
 	}
 
@@ -76,6 +78,7 @@ pkmn_battle_t pkmn_battle_init(pkmn_party_t* ally_party, pkmn_party_t* opponent_
 		.players = { ally_party, opponent_party },
 
 		.active_pkmn = { &ally_party->battlers[0], &opponent_party->battlers[0] },
+		.fainted_idx = -1,
 	};
 }
 
@@ -85,11 +88,14 @@ static void _pkmn_battle_switch(
 	uint8_t* event_count
 ) {
 	_BATTLE_ADD_EVENT(battle, event_count, 
-		_SWITCH_EVENT(action.source_pkmn, action.target_pkmn) // MAKE IT NORMAL PTR LMAO
+		_SWITCH_EVENT(action.field_idx, action.player_idx, action.party_idx)
 	);
 
-	uint8_t field = action.source_pkmn;
-	battle->active_pkmn[field] = action.target_pkmn;
+	const uint8_t Field = action.field_idx;
+	const uint8_t Player = action.player_idx;
+	const uint8_t Pokemon = action.party_idx;
+
+	battle->active_pkmn[Field] = &battle->players[Player]->battlers[Pokemon];
 }
 
 static void _pkmn_battle_move(
@@ -155,11 +161,15 @@ static void _pkmn_battle_do_action(
 
 }
 
-bool pkmn_battle_turn(
+int pkmn_battle_turn(
     pkmn_battle_t* battle,
     pkmn_battle_action_t ally_action, 
     pkmn_battle_action_t opp_action
 ) {
+	if (battle->fainted_idx != -1) {
+		/* mid turn switch in */
+	}
+
 	// Init turn data
 	battle->turn_data = (pkmn_battle_turn_data_t){ 0 };
 	battle->turn_data.seed = pkmn_rand_get_seed();
@@ -172,9 +182,23 @@ bool pkmn_battle_turn(
 	uint8_t event_count = 0;
 	for (size_t action_idx = 0; action_idx < PKMN_ARRAY_SIZE(battle->turn_data.actions); action_idx++) {
 		_pkmn_battle_do_action(battle, battle->turn_data.actions[action_idx], &event_count);
+
+		for (size_t pkmn_idx = 0; pkmn_idx < PKMN_ARRAY_SIZE(battle->active_pkmn); pkmn_idx++) {
+			if (battle->active_pkmn[pkmn_idx]->current_hp <= 0) {
+				battle->fainted_idx = pkmn_idx;
+				return pkmn_idx;
+			}
+		}
 	}
 
-	return false;
+	return -1;
+}
+
+bool pkmn_battle_switch_after_faint(
+	pkmn_battle_t* battle,
+	pkmn_battle_action_t ally_action
+) {
+	return pkmn_battle_turn(battle, ally_action, (pkmn_battle_action_t){ 0 });
 }
 
 pkmn_damage_t pkmn_calculate_damage(

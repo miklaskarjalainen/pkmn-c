@@ -129,7 +129,7 @@ typedef struct pkmn_battle_t {
 
 	pkmn_battle_turn_data_t turn_data;
 
-	int fainted_idx;
+	int fainted_idx, event_count;
 } pkmn_battle_t;
 
 // https://bulbapedia.bulbagarden.net/wiki/Damage

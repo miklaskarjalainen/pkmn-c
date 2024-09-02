@@ -84,10 +84,9 @@ pkmn_battle_t pkmn_battle_init(pkmn_party_t* ally_party, pkmn_party_t* opponent_
 
 static void _pkmn_battle_switch(
 	pkmn_battle_t* battle,
-	pkmn_battle_switch_action_t action,
-	uint8_t* event_count
+	pkmn_battle_switch_action_t action
 ) {
-	_BATTLE_ADD_EVENT(battle, event_count, 
+	_BATTLE_ADD_EVENT(battle, &battle->event_count, 
 		_SWITCH_EVENT(action.field_idx, action.player_idx, action.party_idx)
 	);
 
@@ -100,8 +99,7 @@ static void _pkmn_battle_switch(
 
 static void _pkmn_battle_move(
 	pkmn_battle_t* battle,
-	pkmn_battle_move_action_t action,
-	uint8_t* event_count
+	pkmn_battle_move_action_t action
 ) {
 	PKMN_DEBUG_ASSERT(battle->active_pkmn[action.source_pkmn], "'attacker' IS NULL");
 	PKMN_DEBUG_ASSERT(battle->active_pkmn[action.target_pkmn], "'defender' IS NULL");
@@ -124,7 +122,7 @@ static void _pkmn_battle_move(
 		move->move
 	);
 
-	_BATTLE_ADD_EVENT(battle, event_count,
+	_BATTLE_ADD_EVENT(battle, &battle->event_count,
 		_MOVE_EVENT(action.source_pkmn, action.target_pkmn, action.move_idx, dmg)
 	);
 	
@@ -138,18 +136,17 @@ static void _pkmn_battle_move(
 
 static void _pkmn_battle_do_action(
 	pkmn_battle_t* battle,
-	pkmn_battle_action_t action,
-	uint8_t* event_count
+	pkmn_battle_action_t action
 ) {
-	PKMN_RUNTIME_ASSERT(*event_count <= PKMN_ARRAY_SIZE(battle->turn_data.events), "turn_data.events overflowed");
+	PKMN_RUNTIME_ASSERT(battle->event_count <= PKMN_ARRAY_SIZE(battle->turn_data.events), "turn_data.events overflowed");
 
 	switch (action.type) {
 		case ACTION_MOVE: {
-			_pkmn_battle_move(battle, action.move_action, event_count);
+			_pkmn_battle_move(battle, action.move_action);
 			break;
 		}
 		case ACTION_SWITCH: {
-			_pkmn_battle_switch(battle, action.switch_action, event_count);
+			_pkmn_battle_switch(battle, action.switch_action);
 			break;
 		}
 
@@ -158,6 +155,10 @@ static void _pkmn_battle_do_action(
 			break;
 		}
 	}
+
+}
+
+static void _pkmn_battle_half_turn(pkmn_battle_t* battle, pkmn_battle_action_t action) {
 
 }
 
@@ -181,7 +182,7 @@ int pkmn_battle_turn(
 
 	uint8_t event_count = 0;
 	for (size_t action_idx = 0; action_idx < PKMN_ARRAY_SIZE(battle->turn_data.actions); action_idx++) {
-		_pkmn_battle_do_action(battle, battle->turn_data.actions[action_idx], &event_count);
+		_pkmn_battle_do_action(battle, battle->turn_data.actions[action_idx]);
 
 		for (size_t pkmn_idx = 0; pkmn_idx < PKMN_ARRAY_SIZE(battle->active_pkmn); pkmn_idx++) {
 			if (battle->active_pkmn[pkmn_idx]->current_hp <= 0) {
@@ -198,6 +199,9 @@ bool pkmn_battle_switch_after_faint(
 	pkmn_battle_t* battle,
 	pkmn_battle_action_t ally_action
 ) {
+	_pkmn_battle_half_turn(battle, ally_action);
+
+
 	return pkmn_battle_turn(battle, ally_action, (pkmn_battle_action_t){ 0 });
 }
 

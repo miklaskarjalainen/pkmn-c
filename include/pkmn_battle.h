@@ -129,7 +129,7 @@ typedef struct pkmn_battle_t {
 
 	pkmn_battle_turn_data_t turn_data;
 
-	int fainted_idx, event_count;
+	uint8_t event_count;
 } pkmn_battle_t;
 
 // https://bulbapedia.bulbagarden.net/wiki/Damage
@@ -146,8 +146,9 @@ pkmn_battle_t pkmn_battle_init(
 );
 
 /*
-	returns true if a pokemon was fainted in the middle of the turn.
-	If so then "pkmn_battle_switch_after_faint" has to be called.
+	returns -1 no turn was finished.
+	otherwise returns the index of fainted pokemon and 
+	pkmn_battle_switch_after_faint should be called.
 */
 int pkmn_battle_turn(
     pkmn_battle_t* battle,
@@ -155,8 +156,8 @@ int pkmn_battle_turn(
     pkmn_battle_action_t opp_action
 );
 
-/* called if pkmn_battle_turn returned true */
-bool pkmn_battle_switch_after_faint(
+/* only performs the switch action, and then pkmn_battle_turn should be called afterwards */
+void pkmn_battle_switch_after_faint(
 	pkmn_battle_t* battle,
 	pkmn_battle_action_t ally_action
 );

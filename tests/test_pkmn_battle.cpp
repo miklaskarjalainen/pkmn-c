@@ -163,30 +163,23 @@ TEST_CASE("Battle: Switching in", "[pkmn]") {
 
         pkmn_battle_t battle = pkmn_battle_init(&party, &enemies);
         int fainted = pkmn_battle_turn(&battle,
-             {
-            .type = ACTION_MOVE, .priority = 2, .speed = pkmn_battler_get_stats((&battle)->active_pkmn[0]).speed, .move_action = { .source_pkmn = 0, .target_pkmn = 1, .move_idx = 0, }
-        },
             {
-            .type = ACTION_MOVE, .priority = 2, .speed = pkmn_battler_get_stats((&battle)->active_pkmn[1]).speed, .move_action = { .source_pkmn = 1, .target_pkmn = 0, .move_idx = 0, }
-        }
+                .type = ACTION_MOVE, .priority = 2, .speed = pkmn_battler_get_stats((&battle)->active_pkmn[0]).speed, .move_action = { .source_pkmn = 0, .target_pkmn = 1, .move_idx = 0, }
+            },
+            {
+                .type = ACTION_MOVE, .priority = 2, .speed = pkmn_battler_get_stats((&battle)->active_pkmn[1]).speed, .move_action = { .source_pkmn = 1, .target_pkmn = 0, .move_idx = 0, }
+            }
         );
 
-        if (fainted) {
-            uint8_t fainted_idx = fainted - 1;
-            pkmn_battle_switch_after_faint(
-                &battle, 
-                {
-                .type = ACTION_SWITCH, .priority = 1, .speed = pkmn_battler_get_stats((&battle)->active_pkmn[fainted_idx]).speed, .switch_action = { .field_idx = fainted_idx, .player_idx = fainted_idx, .party_idx = 4, }
-            }
-            );
-        }
+        REQUIRE(fainted == PKMN_BATTLE_OPPONENT);
+        pkmn_battle_switch_after_faint(
+            &battle, 
+            PKMN_ACTION_SWITCH(&battle, PKMN_BATTLE_OPPONENT, PKMN_BATTLE_OPPONENT, 2)
+        );
 
         pkmn_battle_turn_data_t turn = battle.turn_data;
-
-
-        REQUIRE(fainted == 2);
-        REQUIRE(turn.actions[0].type == ACTION_MOVE);
-        REQUIRE(turn.actions[1].type == ACTION_SWITCH);
+        REQUIRE(turn.events[0].type == TURN_EVENT_DMG_MOVE);
+        REQUIRE(turn.events[1].type == TURN_EVENT_SWITCH);
     }
 }
 

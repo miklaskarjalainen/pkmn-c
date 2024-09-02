@@ -78,7 +78,7 @@ pkmn_battle_t pkmn_battle_init(pkmn_party_t* ally_party, pkmn_party_t* opponent_
 		.players = { ally_party, opponent_party },
 
 		.active_pkmn = { &ally_party->battlers[0], &opponent_party->battlers[0] },
-		.fainted_idx = -1,
+		.event_count = 0
 	};
 }
 
@@ -134,10 +134,7 @@ static void _pkmn_battle_move(
 	}
 }
 
-static void _pkmn_battle_do_action(
-	pkmn_battle_t* battle,
-	pkmn_battle_action_t action
-) {
+static void _pkmn_battle_half_turn(pkmn_battle_t* battle, pkmn_battle_action_t action) {
 	PKMN_RUNTIME_ASSERT(battle->event_count <= PKMN_ARRAY_SIZE(battle->turn_data.events), "turn_data.events overflowed");
 
 	switch (action.type) {
@@ -155,11 +152,6 @@ static void _pkmn_battle_do_action(
 			break;
 		}
 	}
-
-}
-
-static void _pkmn_battle_half_turn(pkmn_battle_t* battle, pkmn_battle_action_t action) {
-
 }
 
 int pkmn_battle_turn(
@@ -167,10 +159,6 @@ int pkmn_battle_turn(
     pkmn_battle_action_t ally_action, 
     pkmn_battle_action_t opp_action
 ) {
-	if (battle->fainted_idx != -1) {
-		/* mid turn switch in */
-	}
-
 	// Init turn data
 	battle->turn_data = (pkmn_battle_turn_data_t){ 0 };
 	battle->turn_data.seed = pkmn_rand_get_seed();
@@ -180,13 +168,11 @@ int pkmn_battle_turn(
 
 	_pkmn_sort_actions(battle->turn_data.actions,PKMN_ARRAY_SIZE(battle->turn_data.actions));
 
-	uint8_t event_count = 0;
 	for (size_t action_idx = 0; action_idx < PKMN_ARRAY_SIZE(battle->turn_data.actions); action_idx++) {
-		_pkmn_battle_do_action(battle, battle->turn_data.actions[action_idx]);
+		_pkmn_battle_half_turn(battle, battle->turn_data.actions[action_idx]);
 
 		for (size_t pkmn_idx = 0; pkmn_idx < PKMN_ARRAY_SIZE(battle->active_pkmn); pkmn_idx++) {
 			if (battle->active_pkmn[pkmn_idx]->current_hp <= 0) {
-				battle->fainted_idx = pkmn_idx;
 				return pkmn_idx;
 			}
 		}
@@ -195,14 +181,11 @@ int pkmn_battle_turn(
 	return -1;
 }
 
-bool pkmn_battle_switch_after_faint(
+void pkmn_battle_switch_after_faint(
 	pkmn_battle_t* battle,
 	pkmn_battle_action_t ally_action
 ) {
 	_pkmn_battle_half_turn(battle, ally_action);
-
-
-	return pkmn_battle_turn(battle, ally_action, (pkmn_battle_action_t){ 0 });
 }
 
 pkmn_damage_t pkmn_calculate_damage(

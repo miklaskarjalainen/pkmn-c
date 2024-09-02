@@ -167,11 +167,44 @@ pkmn_battle_action_t _pkmn_print_options(const pkmn_battle_t* battle) {
 
 }
 
-pkmn_battle_action_t _pkmn_ai_wild(const pkmn_battle_t* battle) {
+static pkmn_battle_action_t _pkmn_ai_wild(const pkmn_battle_t* battle) {
     uint8_t idx = pkmn_rand_u8() % 4;
     PKMN_RUNTIME_ASSERT(battle->active_pkmn[1]->moves[idx].move != NULL, "move is null!");
 
     return PKMN_ACTION_MOVE(battle, 1, 0, idx);
+}
+
+static void _pkmn_print_event(const pkmn_battle_t* battle, const pkmn_battle_event_t* ev) {
+    printf("{\n");
+
+    printf("\t.type=%i\n", ev->type);
+    switch (ev->type) {
+        case TURN_EVENT_SWITCH: {
+            const pkmn_battler_t* switched_to = &battle->players[ev->switched.player_idx]->battlers[ev->switched.party_idx];
+            printf("\t.switch = { .to = '%s' }\n", switched_to->species->name);
+            break;
+        }
+        case TURN_EVENT_DMG_MOVE: {
+            const pkmn_battler_t* attacker = battle->active_pkmn[ev->move.source_pkmn];
+            const pkmn_battler_t* defender = battle->active_pkmn[ev->move.target_pkmn];
+            const char* MoveName = attacker->moves[ev->move.move_idx].move->name;
+
+            printf("\t.move = { .name = '%s' }\n", MoveName);
+            break;
+        }
+
+        default: {
+            PKMN_PANIC("does this work.");
+        }
+    }
+    printf("}\n");
+}
+
+static void _pkmn_print(const pkmn_battle_turn_data_t* turn) {
+    printf("{\n");
+    printf("\t.seed=%8X", turn->seed);
+    printf("\t.events", turn->seed);
+
 }
 
 void pkmn_cli_battle(struct pkmn_battle_t* battle) {
@@ -234,15 +267,60 @@ void pkmn_cli_battle(struct pkmn_battle_t* battle) {
         ev_ptr++;
     }
 
-    printf("during battle pokemon '%s' fainted!\n", battle->active_pkmn[fainted-1]->species->name);
+   
+    if (fainted != -1) {
+        printf(
+            "during battle pokemon '%s' fainted!\n",
+            battle->active_pkmn[fainted]->species->name
+        );
 
-    if (fainted) {
+
         switch (fainted) {
-            case 1: {
-                
+            case 0: {
+                printf("your pokemon fainted, now choose a new one!\n");
+
+                for (int i = 0; i < 6; i++) {
+                    const pkmn_battler_t* Battler = &battle->players[0]->battlers[i];
+                    
+                    if (!Battler->species) {
+                        printf("\t %i) NO-POKEMON\n", i+1);
+                        continue;
+                    }
+
+                    pkmn_stats_t stats = pkmn_battler_get_stats(Battler);
+                    printf(
+                        "\t %i) %s %u/%u\n", i+1,
+                        Battler->species->name,
+                        Battler->current_hp,
+                        stats.hp
+                    );
+                }
+
+                getc(stdin);
+                int c = getc(stdin);
+                switch (c) {
+                    case '1':
+                    case '2':
+                    case '3':
+                    case '4':
+                    case '5':
+                    case '6': {
+                        pkmn_battle_switch_after_faint(battle,
+                            PKMN_ACTION_SWITCH(battle, PKMN_BATTLE_ALLY, PKMN_BATTLE_ALLY, c - '1')
+                        );
+
+                        break;
+                    }
+
+                    default: {
+                        PKMN_PANIC("Invalid option '%c'", c);
+                    }
+                }
+
+
                 break;
             }
-            case 2: {
+            case 1: {
                 pkmn_battle_switch_after_faint(battle,
                     PKMN_ACTION_SWITCH(battle, PKMN_BATTLE_OPPONENT, PKMN_BATTLE_OPPONENT, 2)
                 );
@@ -258,9 +336,14 @@ void pkmn_cli_battle(struct pkmn_battle_t* battle) {
 
     }
 
-    //_pkmn_print_action(&player_action);
-    //_pkmn_print_action(&opponent_action);
-    _pkmn_print_field(battle);
+    for (int i = 0; i < PKMN_ARRAY_SIZE(battle->turn_data.events); i++) {
+        if (battle->turn_data.events[i].type == TURN_EVENT_NIL) {
+            break;
+        }
 
+        _pkmn_print_event(battle, &battle->turn_data.events[i]);
+    }
+
+    _pkmn_print_field(battle);
 }
 

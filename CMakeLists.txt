@@ -55,7 +55,7 @@ if (BUILD_TESTS)
     add_test(NAME Tests COMMAND tests)
 endif()
 
-add_compile_options(-pedantic)
-
 add_executable(${PROJECT_NAME} src/main.c ${SOURCE_FILES})
 target_include_directories(${PROJECT_NAME} PRIVATE ${INCLUDE_DIRS})
+add_library(${PROJECT_NAME}-lib ${SOURCE_FILES})
+target_include_directories(${PROJECT_NAME}-lib PRIVATE ${INCLUDE_DIRS})

@@ -1,6 +1,5 @@
 #include "pkmn_battle.h"
 #include "pkmn_battler.h"
-#include "pkmn_coroutine.h"
 #include "pkmn_config.h"
 #include "pkmn_move.h"
 #include "pkmn_rand.h"

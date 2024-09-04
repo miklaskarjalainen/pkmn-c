@@ -40,10 +40,6 @@
 		}									\
 	}
 
-static bool _pkmn_action_is_priority(pkmn_battle_action_t action) {
-	return action.type != ACTION_MOVE;
-}
-
 static void _pkmn_sort_actions(pkmn_battle_action_t* action, size_t length) {
 	for (size_t i = 0; i < length-1; i++) {
 		for (size_t j = 0; j < length-i-1; j++) {

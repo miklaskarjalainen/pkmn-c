@@ -7,6 +7,7 @@ set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_EXTENSIONS off)
 set(
     SOURCE_FILES
+    include/pkmn_ai.h src/pkmn_ai.c
     include/pkmn_coroutine.h
     include/pkmn_battle.h src/pkmn_battle.c
     include/pkmn_battle_cli.h src/pkmn_battle_cli.c

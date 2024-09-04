@@ -37,6 +37,16 @@
         printf(STDOUT_RESET "\n");      \
     } while(0)
 
+#define PKMN_VERIFY_RETURN(expr, ret, ...) \
+    do {                                                                                                    \
+        if (!(expr)) {                                                                                      \
+            printf(STDOUT_ERROR "Error: " STDOUT_RESET "condition '" #expr "' failed, returning " #ret ". " __FILE__ ":%i'", __LINE__);  \
+            printf(__VA_ARGS__);                                                                            \
+            printf("'\n");                                                                                  \
+            PKMN_FORCE_EXIT();                                                                              \
+        }                                                                                                   \
+    } while(0)
+
 #define PKMN_RUNTIME_ASSERT(expr, ...) \
     do {                                                                                                    \
         if (!(expr)) {                                                                                      \

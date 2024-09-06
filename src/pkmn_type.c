@@ -139,3 +139,140 @@ uint32_t pkmn_xp_gained_raw(
             participants;
     return ((b * l) / 7.0f) * (1.0f / (float)S) * E * A * T;
 }
+
+/*
+[NORMAL]
+Name = Normal
+IconPosition = 0
+Weaknesses = FIGHTING
+Immunities = GHOST
+*/
+
+static bool _has_type(pkmn_type_t target, const pkmn_type_t* arr, size_t len) {
+    for (size_t i = 0; i < len; i++) {
+        if (arr[i] == target) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool pkmn_type_immune_to(pkmn_type_t defender, pkmn_type_t attack_type) {
+    switch(defender) {
+        case TYPE_NORMAL:
+            return attack_type == TYPE_GHOST;
+        case TYPE_FLYING:
+            return attack_type == TYPE_GROUND;
+        case TYPE_GROUND:
+            return attack_type == TYPE_ELECTRIC;
+        case TYPE_GHOST:
+            return attack_type == TYPE_NORMAL || attack_type == TYPE_FIGHTING;
+        case TYPE_STEEL:
+            return attack_type == TYPE_POISON;
+        case TYPE_DARK:
+            return attack_type == TYPE_PSYCHIC;
+        case TYPE_FAIRY:
+            return attack_type == TYPE_DRAGON;
+        default:
+            return false;
+    }
+}
+
+bool pkmn_type_weak_to(pkmn_type_t defender, pkmn_type_t attack_type) {
+    switch (defender) {
+        case TYPE_NORMAL: {
+            return attack_type == TYPE_FIGHTING;
+        }
+        case TYPE_FIGHTING: {
+            static const pkmn_type_t WEAKNESSES[] = {
+                TYPE_FLYING, TYPE_PSYCHIC, TYPE_FAIRY
+            };
+            return _has_type(attack_type, WEAKNESSES, PKMN_ARRAY_SIZE(WEAKNESSES));
+        }
+        case TYPE_FLYING: {
+            static const pkmn_type_t WEAKNESSES[] = {
+                TYPE_ROCK, TYPE_ELECTRIC, TYPE_ICE
+            };
+            return _has_type(attack_type, WEAKNESSES, PKMN_ARRAY_SIZE(WEAKNESSES));
+        }
+        case TYPE_POISON: {
+            static const pkmn_type_t WEAKNESSES[] = {
+                TYPE_GROUND, TYPE_PSYCHIC
+            };
+            return _has_type(attack_type, WEAKNESSES, PKMN_ARRAY_SIZE(WEAKNESSES));
+        }
+        case TYPE_GROUND: {
+            static const pkmn_type_t WEAKNESSES[] = {
+                TYPE_WATER, TYPE_GRASS, TYPE_ICE
+            };
+            return _has_type(attack_type, WEAKNESSES, PKMN_ARRAY_SIZE(WEAKNESSES));
+        }
+        case TYPE_ROCK: {
+            static const pkmn_type_t WEAKNESSES[] = {
+                TYPE_FIGHTING, TYPE_GROUND, TYPE_STEEL, TYPE_WATER, TYPE_GRASS
+            };
+            return _has_type(attack_type, WEAKNESSES, PKMN_ARRAY_SIZE(WEAKNESSES));
+        }
+        case TYPE_BUG: {
+            static const pkmn_type_t WEAKNESSES[] = {
+                TYPE_FLYING, TYPE_ROCK, TYPE_FIRE
+            };
+            return _has_type(attack_type, WEAKNESSES, PKMN_ARRAY_SIZE(WEAKNESSES));
+        }
+        case TYPE_STEEL: {
+            static const pkmn_type_t WEAKNESSES[] = {
+                TYPE_FIGHTING, TYPE_GROUND, TYPE_FIRE
+            };
+            return _has_type(attack_type, WEAKNESSES, PKMN_ARRAY_SIZE(WEAKNESSES));
+        }
+        case TYPE_FIRE: {
+            static const pkmn_type_t WEAKNESSES[] = {
+                TYPE_GROUND, TYPE_ROCK, TYPE_WATER
+            };
+            return _has_type(attack_type, WEAKNESSES, PKMN_ARRAY_SIZE(WEAKNESSES));
+        }
+        case TYPE_WATER: {
+            static const pkmn_type_t WEAKNESSES[] = {
+                TYPE_GRASS, TYPE_ELECTRIC
+            };
+            return _has_type(attack_type, WEAKNESSES, PKMN_ARRAY_SIZE(WEAKNESSES));
+        }
+        case TYPE_GRASS: {
+            static const pkmn_type_t WEAKNESSES[] = {
+                TYPE_FLYING, TYPE_POISON, TYPE_BUG, TYPE_FIRE, TYPE_ICE
+            };
+            return _has_type(attack_type, WEAKNESSES, PKMN_ARRAY_SIZE(WEAKNESSES));
+        }
+        case TYPE_ELECTRIC: {
+            return attack_type == TYPE_GROUND;
+        }
+        case TYPE_PSYCHIC: {
+            static const pkmn_type_t WEAKNESSES[] = {
+                TYPE_BUG, TYPE_GHOST, TYPE_DARK
+            };
+            return _has_type(attack_type, WEAKNESSES, PKMN_ARRAY_SIZE(WEAKNESSES));
+        }
+        case TYPE_DRAGON: {
+            static const pkmn_type_t WEAKNESSES[] = {
+                TYPE_ICE, TYPE_DRAGON, TYPE_FAIRY
+            };
+            return _has_type(attack_type, WEAKNESSES, PKMN_ARRAY_SIZE(WEAKNESSES));
+        }
+        case TYPE_DARK: {
+            static const pkmn_type_t WEAKNESSES[] = {
+                TYPE_FIGHTING, TYPE_BUG, TYPE_FAIRY
+            };
+            return _has_type(attack_type, WEAKNESSES, PKMN_ARRAY_SIZE(WEAKNESSES));
+        }
+        case TYPE_FAIRY: {
+            static const pkmn_type_t WEAKNESSES[] = {
+                TYPE_POISON, TYPE_STEEL
+            };
+            return _has_type(attack_type, WEAKNESSES, PKMN_ARRAY_SIZE(WEAKNESSES));
+        }
+        default: {
+            return false;
+        }
+    }
+}
+

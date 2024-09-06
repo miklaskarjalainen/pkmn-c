@@ -29,7 +29,7 @@ typedef enum pkmn_type_t {
 	TYPE_DARK,
 	TYPE_FAIRY,
     TYPE_COUNT,
-} pkmn_type_t ;
+} pkmn_type_t;
 
 typedef enum pkmn_growth_rate_t {
 	EXP_FAST,
@@ -53,5 +53,8 @@ uint32_t pkmn_xp_gained_raw(
 	bool current_has_xp_share,
 	bool current_has_lucky_egg
 );
+
+bool pkmn_type_weak_to(pkmn_type_t defender, pkmn_type_t attacker);
+
 
 #endif

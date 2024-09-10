@@ -2,6 +2,7 @@
 #include "pkmn_config.h"
 #include "pkmn_math.h"
 #include "pkmn_battler.h"
+#include "pkmn_config.h"
 #include "data/pkmn_pokemon_data.h"
 
 const char* pkmn_type_to_str(pkmn_type_t type) {
@@ -386,10 +387,26 @@ pkmn_effectiveness_t pkmn_move_effectiveness(
 	const pkmn_battler_t* battler,
 	pkmn_type_t attack_type
 ) {
-    float effectiveness = 1.0;
+    uint8_t effectiveness = (uint8_t)NORMAL_EFFECTIVE;
 
-    for ()
+    for (uint8_t i = 0; i < PKMN_ARRAY_SIZE(battler->species->types); i++) {
+        pkmn_type_t defend_type = battler->species->types[i];
+        
+        if (pkmn_type_immune_to(defend_type, attack_type)) {
+            effectiveness = 0;
+            break;
+        }
+        if (pkmn_type_resistant_to(defend_type, attack_type)) {
+            effectiveness -= 1;
+            continue;
+        }
+        if (pkmn_type_weak_to(defend_type, attack_type)) {
+            effectiveness += 1;
+            continue;
+        }
+    }
 
-
+    PKMN_RUNTIME_ASSERT(effectiveness <= SUPER_SUPER_EFFECTIVE, "effectiveness over supported.");
+    return (pkmn_effectiveness_t)effectiveness;
 }
 

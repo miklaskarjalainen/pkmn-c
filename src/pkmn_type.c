@@ -213,6 +213,12 @@ bool pkmn_type_weak_to(pkmn_type_t defender, pkmn_type_t attack_type) {
             };
             return _has_type(attack_type, WEAKNESSES, PKMN_ARRAY_SIZE(WEAKNESSES));
         }
+        case TYPE_GHOST: {
+            static const pkmn_type_t WEAKNESSES[] = {
+                TYPE_GHOST, TYPE_DARK
+            };
+            return _has_type(attack_type, WEAKNESSES, PKMN_ARRAY_SIZE(WEAKNESSES));
+        }
         case TYPE_STEEL: {
             static const pkmn_type_t WEAKNESSES[] = {
                 TYPE_FIGHTING, TYPE_GROUND, TYPE_FIRE

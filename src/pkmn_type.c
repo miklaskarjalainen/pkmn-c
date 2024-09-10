@@ -265,7 +265,7 @@ bool pkmn_type_weak_to(pkmn_type_t defender, pkmn_type_t attack_type) {
             return _has_type(attack_type, WEAKNESSES, PKMN_ARRAY_SIZE(WEAKNESSES));
         }
         default: {
-            PKMN_VERIFY_RETURN(false, false, "Weaknesses are not implemented for type '%u'!", attack_type);
+            PKMN_VERIFY_RETURN(false, false, "Weaknesses are not implemented for type '%u'!", defender);
         }
     }
 }
@@ -377,7 +377,7 @@ bool pkmn_type_resistant_to(
         }
 
         default: {
-            PKMN_VERIFY_RETURN(false, false, "Resistances are not implemented for type '%u'!", attack_type);
+            PKMN_VERIFY_RETURN(false, false, "Resistances are not implemented for type '%u'!", defender);
         }
     }
     
@@ -391,6 +391,9 @@ pkmn_effectiveness_t pkmn_move_effectiveness(
 
     for (uint8_t i = 0; i < PKMN_ARRAY_SIZE(battler->species->types); i++) {
         pkmn_type_t defend_type = battler->species->types[i];
+        if (defend_type == TYPE_NULL) {
+            continue;
+        }
         
         if (pkmn_type_immune_to(defend_type, attack_type)) {
             effectiveness = 0;

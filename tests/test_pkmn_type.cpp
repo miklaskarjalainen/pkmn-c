@@ -2,6 +2,8 @@
 
 extern "C" {
     #include "pkmn_type.h"
+    #include "pkmn_battler.h"
+    #include "data/pkmn_pokemon_data.h"
 }
 
 TEST_CASE("Type: xp total", "[pkmn]") {
@@ -107,3 +109,28 @@ TEST_CASE("Type: xp next level", "[pkmn]") {
     }
 }
 
+TEST_CASE("Type: immunities", "[pkmn]") {
+    // Immunities
+    {
+        REQUIRE(pkmn_type_immune_to(TYPE_FLYING, TYPE_GROUND) == true);
+        REQUIRE(pkmn_type_immune_to(TYPE_GHOST, TYPE_NORMAL) == true);
+        REQUIRE(pkmn_type_immune_to(TYPE_NORMAL, TYPE_GHOST) == true);
+
+        REQUIRE(pkmn_type_immune_to(TYPE_NORMAL, TYPE_NORMAL) == false);
+        REQUIRE(pkmn_type_immune_to(TYPE_FIRE, TYPE_WATER) == false);
+        REQUIRE(pkmn_type_immune_to(TYPE_FIRE, TYPE_GRASS) == false);
+    }
+}
+
+TEST_CASE("Type: pkmn move effectiveness", "[pkmn]") {
+    // Charizard
+    {
+        pkmn_battler_t charizard = pkmn_generate_battler(CHARIZARD, 50);   
+        REQUIRE(pkmn_move_effectiveness(&charizard, TYPE_GROUND) == IMMUNE_EFFECTIVE);
+        
+        REQUIRE(pkmn_move_effectiveness(&charizard, TYPE_ROCK) == SUPER_SUPER_EFFECTIVE);
+        REQUIRE(pkmn_move_effectiveness(&charizard, TYPE_ELECTRIC) == SUPER_EFFECTIVE);
+        REQUIRE(pkmn_move_effectiveness(&charizard, TYPE_WATER) == SUPER_EFFECTIVE);
+        REQUIRE(pkmn_move_effectiveness(&charizard, TYPE_GRASS) == NOT_VERY_VERY_EFFECTIVE);
+    }
+}

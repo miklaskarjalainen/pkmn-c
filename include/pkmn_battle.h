@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#include "pkmn_coroutine.h"
+#include "pkmn_type.h"
 
 
 struct pkmn_battler_t;
@@ -18,9 +18,9 @@ struct pkmn_move_t;
 
 typedef struct pkmn_damage_t {
 	uint16_t damage_done;
+	pkmn_effectiveness_t effectiveness;
 	bool is_critical;
 	bool is_stab;
-	bool is_super_effective;
 } pkmn_damage_t;
 
 typedef enum pkmn_battle_action_type {
@@ -28,13 +28,6 @@ typedef enum pkmn_battle_action_type {
 	ACTION_MOVE,
 	ACTION_SWITCH
 } pkmn_battle_action_type;
-
-/*
-typedef enum pkmn_battle_target {
-	TARGET_SELF 	= 0,
-	TARGET_OPPONENT = 1,
-} pkmn_battle_target;
-*/
 
 typedef struct pkmn_battle_move_action_t {
 	uint8_t source_pkmn, target_pkmn, move_idx;

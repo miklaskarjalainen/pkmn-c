@@ -6,6 +6,7 @@
 #include "pkmn_species.h"
 #include "pkmn_stats.h"
 #include "pkmn_math.h"
+#include "pkmn_type.h"
 
 #define _BATTLE_ADD_EVENT(battle, ev_ptr, ev) (battle)->turn_data.events[(*ev_ptr)++] = ev
 #define _MOVE_EVENT(attacker_idx, defender_idx, move_idx_, dmg) 	\
@@ -199,25 +200,58 @@ pkmn_damage_t pkmn_calculate_damage(
     float dmg = ((((2.0f*attacker->level)/5.0f)+2.0f) * move->power * AtkStat/DefStat) / 50.0f;
 
     // TODO: Rest of the mechanics e.g weather, stab, burns, high crit ratio etc
-    const bool CriticalHit = pkmn_randf() <= 0.5f;
+	
+	// Type effectivity
+	pkmn_effectiveness_t effectivity = pkmn_move_effectiveness(defender, move->type);
+	switch (effectivity) {
+		case IMMUNE_EFFECTIVE: {
+			dmg = 0.0;
+			break;
+		}
+		case NOT_VERY_VERY_EFFECTIVE: {
+			dmg *= 0.25f;
+			break;
+		}
+		case NOT_VERY_EFFECTIVE: {
+			dmg *= 0.55f;
+			break;
+		}
+		case SUPER_EFFECTIVE: {
+			dmg *= 2.0f;
+			break;
+		}
+		case SUPER_SUPER_EFFECTIVE: {
+			dmg *= 4.0f;
+			break;
+		}
+		default: {
+			break;
+		}
+	}
+
+	// Critical hit
+    const bool CriticalHit = pkmn_randf() <= CRITICAL_CHANCE;
     if (CriticalHit) {
         dmg *= 2.0f;
     }
 
+	// Same type attack bonus (STAB)
     const bool Stab = 
         attacker->species->types[0] == move->type ||
         attacker->species->types[1] == move->type;
     if (Stab) {
         dmg *= 1.5f;
     }
+
+	// Little randomness on the damage
     const float Random = pkmn_rand_range(85, 100) / 100.0f;
     dmg *= Random;
 
     return (pkmn_damage_t) {
         .damage_done = dmg,
+        .effectiveness = false,
         .is_critical = CriticalHit,
         .is_stab = Stab,
-        .is_super_effective = false,
     };
 }
 

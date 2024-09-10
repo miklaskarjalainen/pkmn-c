@@ -1,6 +1,7 @@
 #include "pkmn_type.h"
 #include "pkmn_config.h"
 #include "pkmn_math.h"
+#include "pkmn_battler.h"
 #include "data/pkmn_pokemon_data.h"
 
 const char* pkmn_type_to_str(pkmn_type_t type) {
@@ -140,14 +141,6 @@ uint32_t pkmn_xp_gained_raw(
     return ((b * l) / 7.0f) * (1.0f / (float)S) * E * A * T;
 }
 
-/*
-[NORMAL]
-Name = Normal
-IconPosition = 0
-Weaknesses = FIGHTING
-Immunities = GHOST
-*/
-
 static bool _has_type(pkmn_type_t target, const pkmn_type_t* arr, size_t len) {
     for (size_t i = 0; i < len; i++) {
         if (arr[i] == target) {
@@ -271,8 +264,132 @@ bool pkmn_type_weak_to(pkmn_type_t defender, pkmn_type_t attack_type) {
             return _has_type(attack_type, WEAKNESSES, PKMN_ARRAY_SIZE(WEAKNESSES));
         }
         default: {
-            return false;
+            PKMN_VERIFY_RETURN(false, false, "Weaknesses are not implemented for type '%u'!", attack_type);
         }
     }
+}
+
+bool pkmn_type_resistant_to(
+    pkmn_type_t defender, 
+    pkmn_type_t attack_type
+) {
+    switch (defender) {
+        case TYPE_NORMAL: {
+            return false;
+        }
+        case TYPE_FIGHTING: {
+            static const pkmn_type_t RESISTANCES[] = {
+                TYPE_ROCK, TYPE_BUG, TYPE_DARK
+            };
+            return _has_type(attack_type, RESISTANCES, PKMN_ARRAY_SIZE(RESISTANCES));
+        }
+        case TYPE_FLYING: {
+            static const pkmn_type_t RESISTANCES[] = {
+                TYPE_FIGHTING, TYPE_BUG, TYPE_GRASS
+            };
+            return _has_type(attack_type, RESISTANCES, PKMN_ARRAY_SIZE(RESISTANCES));
+        }
+        case TYPE_POISON: {
+            static const pkmn_type_t RESISTANCES[] = {
+                TYPE_FIGHTING, TYPE_POISON, TYPE_BUG, TYPE_GRASS, TYPE_FAIRY
+            };
+            return _has_type(attack_type, RESISTANCES, PKMN_ARRAY_SIZE(RESISTANCES));
+        }
+        case TYPE_GROUND: {
+            static const pkmn_type_t RESISTANCES[] = {
+                TYPE_POISON, TYPE_ROCK
+            };
+            return _has_type(attack_type, RESISTANCES, PKMN_ARRAY_SIZE(RESISTANCES));
+        }
+        case TYPE_ROCK: {
+            static const pkmn_type_t RESISTANCES[] = {
+                TYPE_NORMAL, TYPE_FLYING, TYPE_POISON, TYPE_FIRE
+            };
+            return _has_type(attack_type, RESISTANCES, PKMN_ARRAY_SIZE(RESISTANCES));
+        }
+        case TYPE_BUG: {
+            static const pkmn_type_t RESISTANCES[] = {
+                TYPE_FIGHTING, TYPE_GROUND, TYPE_GRASS
+            };
+            return _has_type(attack_type, RESISTANCES, PKMN_ARRAY_SIZE(RESISTANCES));
+        }
+        case TYPE_GHOST: {
+            static const pkmn_type_t RESISTANCES[] = {
+                TYPE_POISON, TYPE_BUG
+            };
+            return _has_type(attack_type, RESISTANCES, PKMN_ARRAY_SIZE(RESISTANCES));
+        }
+        case TYPE_STEEL: {
+            static const pkmn_type_t RESISTANCES[] = {
+                TYPE_NORMAL, TYPE_FLYING, TYPE_ROCK, TYPE_BUG, TYPE_STEEL, TYPE_GRASS, TYPE_PSYCHIC,
+                TYPE_ICE, TYPE_DRAGON, TYPE_FAIRY
+            };
+            return _has_type(attack_type, RESISTANCES, PKMN_ARRAY_SIZE(RESISTANCES));
+        }
+        case TYPE_FIRE: {
+            static const pkmn_type_t RESISTANCES[] = {
+                TYPE_BUG, TYPE_STEEL, TYPE_FIRE, TYPE_GRASS, TYPE_ICE,TYPE_FAIRY
+            };
+            return _has_type(attack_type, RESISTANCES, PKMN_ARRAY_SIZE(RESISTANCES));
+        }
+        case TYPE_WATER: {
+            static const pkmn_type_t RESISTANCES[] = {
+                TYPE_GROUND, TYPE_WATER, TYPE_GRASS, TYPE_ELECTRIC
+            };
+            return _has_type(attack_type, RESISTANCES, PKMN_ARRAY_SIZE(RESISTANCES));
+        }
+        case TYPE_ELECTRIC: {
+            static const pkmn_type_t RESISTANCES[] = {
+                TYPE_FLYING, TYPE_STEEL, TYPE_ELECTRIC
+            };
+            return _has_type(attack_type, RESISTANCES, PKMN_ARRAY_SIZE(RESISTANCES));
+        }
+        case TYPE_PSYCHIC: {
+            static const pkmn_type_t RESISTANCES[] = {
+                TYPE_FIGHTING, TYPE_PSYCHIC
+            };
+            return _has_type(attack_type, RESISTANCES, PKMN_ARRAY_SIZE(RESISTANCES));
+        }
+        case TYPE_ICE: {
+            static const pkmn_type_t RESISTANCES[] = {
+                TYPE_ICE,
+            };
+            return _has_type(attack_type, RESISTANCES, PKMN_ARRAY_SIZE(RESISTANCES));
+        }
+        case TYPE_DRAGON: {
+            static const pkmn_type_t RESISTANCES[] = {
+                TYPE_FIRE, TYPE_WATER, TYPE_GRASS, TYPE_ELECTRIC
+            };
+            return _has_type(attack_type, RESISTANCES, PKMN_ARRAY_SIZE(RESISTANCES));
+        }
+        case TYPE_DARK: {
+            static const pkmn_type_t RESISTANCES[] = {
+                TYPE_GHOST, TYPE_DARK
+            };
+            return _has_type(attack_type, RESISTANCES, PKMN_ARRAY_SIZE(RESISTANCES));
+        }
+        case TYPE_FAIRY: {
+            static const pkmn_type_t RESISTANCES[] = {
+                TYPE_FIGHTING, TYPE_BUG, TYPE_DARK
+            };
+            return _has_type(attack_type, RESISTANCES, PKMN_ARRAY_SIZE(RESISTANCES));
+        }
+
+        default: {
+            PKMN_VERIFY_RETURN(false, false, "Resistances are not implemented for type '%u'!", attack_type);
+        }
+    }
+    
+}
+
+pkmn_effectiveness_t pkmn_move_effectiveness(
+	const pkmn_battler_t* battler,
+	pkmn_type_t attack_type
+) {
+    float effectiveness = 1.0;
+
+    for ()
+
+
 }
 

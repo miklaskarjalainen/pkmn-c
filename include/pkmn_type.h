@@ -4,9 +4,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#define TYPE_MAX_IMMUNITIES  2
-#define TYPE_MAX_RESISTANCES 4
-#define TYPE_MAX_WEAKNESSES  4
+struct pkmn_battler_t;
 
 typedef enum pkmn_type_t {
 	TYPE_NULL = 0,
@@ -31,8 +29,15 @@ typedef enum pkmn_type_t {
     TYPE_COUNT,
 } pkmn_type_t;
 
+typedef enum pkmn_effectiveness_t {
+	NOT_VERY_EFFECTIVE = 0, // x0.5
+	NORMAL_EFFECTIVE,  		// x1.0
+	SUPER_EFFECTIVE,		// x2.0
+	SUPER_SUPER_EFFECTIVE	// x4.0
+} pkmn_effectiveness_t;
+
 typedef enum pkmn_growth_rate_t {
-	EXP_FAST,
+	EXP_FAST = 0,
 	EXP_MEDIUM_FAST,
 	EXP_SLOW,
 	EXP_MEDIUM_SLOW,
@@ -54,7 +59,13 @@ uint32_t pkmn_xp_gained_raw(
 	bool current_has_lucky_egg
 );
 
-bool pkmn_type_weak_to(pkmn_type_t defender, pkmn_type_t attacker);
 
+bool pkmn_type_immune_to(pkmn_type_t defender, pkmn_type_t attack_type);
+bool pkmn_type_weak_to(pkmn_type_t defender, pkmn_type_t attack_type);
+bool pkmn_type_resistant_to(pkmn_type_t defender, pkmn_type_t attack_type);
+pkmn_effectiveness_t pkmn_move_effectiveness(
+	const struct pkmn_battler_t* battler,
+	pkmn_type_t attack_type
+);
 
 #endif

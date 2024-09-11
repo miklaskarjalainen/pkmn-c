@@ -81,16 +81,8 @@ int main(void) {
 			pkmn_generate_battler(RAYQUAZA, 50),
 		}
 	};
-
+	
 	pkmn_battle_t battle = pkmn_battle_init(&party, &enemies);
-
-	pkmn_battle_action_t ac = PKMN_ACTION_SWITCH(battle.ally_active, &battle.ally_party->battlers[2]);
-	pkmn_battle_turn_data_t turn_data = pkmn_battle_turn(
-		&battle, 
-		PKMN_ACTION_MOVE(battle.ally_active, battle.opp_active, 0), 
-		PKMN_ACTION_MOVE(battle.opp_active, battle.ally_active, 0)
-	);
-
 	pkmn_cli_battle(&battle);
 
     return 0;

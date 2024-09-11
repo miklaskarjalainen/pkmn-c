@@ -30,10 +30,12 @@ typedef enum pkmn_type_t {
 } pkmn_type_t;
 
 typedef enum pkmn_effectiveness_t {
-	NOT_VERY_EFFECTIVE = 0, // x0.5
-	NORMAL_EFFECTIVE,  		// x1.0
-	SUPER_EFFECTIVE,		// x2.0
-	SUPER_SUPER_EFFECTIVE	// x4.0
+	IMMUNE_EFFECTIVE 		= 0,	// x0
+	NOT_VERY_VERY_EFFECTIVE = 1,	// x0.25
+	NOT_VERY_EFFECTIVE 	  = 2,		// x0.5
+	NORMAL_EFFECTIVE  	  = 3, 		// x1.0
+	SUPER_EFFECTIVE   	  = 4,		// x2.0
+	SUPER_SUPER_EFFECTIVE = 5,		// x4.0
 } pkmn_effectiveness_t;
 
 typedef enum pkmn_growth_rate_t {

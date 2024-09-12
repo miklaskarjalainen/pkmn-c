@@ -73,7 +73,7 @@ const static pkmn_move_semantics_t MoveSemantics[MOVE_COUNT] = {{
 # Iterate through all the moves
 for idx, move_name in enumerate(parsed.keys()):
     _move = PBSMove(parsed[move_name])
-    _file_contents += f"\t[{idx}] = {_move.to_string()},\n"
+    _file_contents += f"\t{_move.to_string()},\n"
 _file_contents += "\n};\n\n\n"
     
 # Create macros for each move

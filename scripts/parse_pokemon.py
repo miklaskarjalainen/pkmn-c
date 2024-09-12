@@ -54,7 +54,7 @@ const static pkmn_species_t PokemonSpecies[SPECIES_COUNT] = {{
 # Iterate through all the pokemon
 for idx, pokemon_name in enumerate(parsed.keys()):
     _pkmn = PBSPokemon(parsed[pokemon_name])
-    _file_contents += f"\t[{idx}] = {_pkmn.to_string()},\n"
+    _file_contents += f"\t{_pkmn.to_string()},\n"
     
 _file_contents += "\n};\n\n"
 
